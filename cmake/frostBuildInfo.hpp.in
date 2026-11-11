@@ -1,0 +1,13 @@
+#pragma once
+namespace frost::detail {
+inline constexpr auto kFrostVersion  = "@PROJECT_VERSION@";
+inline constexpr auto kFrostRevision = "@FROST_BUILD_REVISION@";
+inline constexpr auto kDmtRevision   = "@FROST_DMT_BUILD_REVISION@";
+inline constexpr auto kPsRioRevision = "@FROST_PSRIO_BUILD_REVISION@";
+inline constexpr auto kCompiler =
+    "@CMAKE_CXX_COMPILER_ID@ @CMAKE_CXX_COMPILER_VERSION@";
+inline constexpr auto kBuildType    = "@CMAKE_BUILD_TYPE@";
+inline constexpr auto kGpuToolchain = "@FROST_GPU_BACKEND@";
+inline constexpr auto kNativeArch   = "@FROST_ENABLE_NATIVE_ARCH@";
+inline constexpr auto kCpuArch      = "@FROST_CPU_ARCH@";
+} // namespace frost::detail

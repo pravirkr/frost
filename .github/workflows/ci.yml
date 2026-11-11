@@ -1,0 +1,88 @@
+name: C++ CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CPM_SOURCE_CACHE: ${{ github.workspace }}/.cache/cpm
+  CCACHE_DIR: ${{ github.workspace }}/.cache/ccache
+  CCACHE_MAXSIZE: 1G
+
+jobs:
+  cpp:
+    name: C++ (${{ matrix.cxx }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - cxx: g++-11
+            cc: gcc-11
+            packages: gcc-11 g++-11
+          - cxx: clang++-17
+            cc: clang-17
+            packages: clang-17 libomp-17-dev
+          - cxx: g++-14
+            cc: gcc-14
+            packages: gcc-14 g++-14
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install system dependencies
+        env:
+          COMPILER_PACKAGES: ${{ matrix.packages }}
+        run: |
+          sudo apt-get update
+          read -ra compiler_packages <<< "$COMPILER_PACKAGES"
+          sudo apt-get install -y cmake ninja-build ccache libhdf5-dev libfftw3-dev "${compiler_packages[@]}"
+      - uses: actions/cache@v6
+        with:
+          path: .cache/cpm
+          key: cpm-${{ runner.os }}-${{ hashFiles('cmake/frostDependencies.cmake', 'cmake/CPM.cmake') }}
+          restore-keys: cpm-${{ runner.os }}-
+      - uses: actions/cache@v6
+        with:
+          path: .cache/ccache
+          key: ccache-${{ runner.os }}-${{ matrix.cxx }}-${{ github.sha }}
+          restore-keys: ccache-${{ runner.os }}-${{ matrix.cxx }}-
+      - name: Configure, build and test
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: |
+          cmake --preset ci -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX"
+          cmake --build --preset ci --parallel 4
+          ctest --preset ci --parallel 4
+          CXX="$CXX" BUILD_DIR=build-ci scripts/check_architecture.sh
+          ccache --show-stats
+      - name: Install and check a public consumer
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: |
+          # CPM dependencies are EXCLUDE_FROM_ALL; install their public/runtime
+          # packages explicitly before testing a standalone consumer.
+          cmake --build build-ci --target fmt
+          for package in fmt psrio dmt; do
+            cmake --install "build-ci/_deps/${package}-build" --prefix "$RUNNER_TEMP/frost"
+          done
+          # PSRDADA root installs absolute package metadata; only its runtime
+          # and headers are needed by our FindPSRDADA module.
+          cmake --install build-ci/_deps/psrdada-build/src --prefix "$RUNNER_TEMP/frost"
+          cmake --install build-ci --prefix "$RUNNER_TEMP/frost"
+          "$RUNNER_TEMP/frost/bin/frost" --help
+          cmake -S tests/consumer -B build-consumer -G Ninja \
+            -DCMAKE_CXX_COMPILER="$CXX" -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/frost"
+          cmake --build build-consumer --parallel 4
+          ./build-consumer/frost_consumer

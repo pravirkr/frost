@@ -1,0 +1,100 @@
+format:
+  disable: false
+  line_width: 100
+  tab_size: 2
+  use_tabchars: false
+  max_subgroups_hwrap: 2
+  dangle_parens: true
+
+enable_markup: false
+
+# cmake-lint naming aligned with FROST_* cache/options and lowercase function locals.
+lint:
+  disabled_codes:
+    # Custom commands without a separate generating comment are fine when obvious.
+    - C0113
+  function_pattern: "[0-9a-z_]+"
+  macro_pattern: "[0-9A-Z_]+"
+  global_var_pattern: "FROST_[A-Z0-9_]+|[A-Z][0-9A-Z_]+"
+  internal_var_pattern: "FROST_[A-Z0-9_]+|_[A-Z][0-9A-Z_]+"
+  local_var_pattern: "[a-z][a-z0-9_]+"
+  public_var_pattern: "([A-Z][0-9A-Z_]+|[A-Za-z][A-Za-z0-9_]*_FOUND)"
+  private_var_pattern: "_[0-9a-z_]+"
+  argument_var_pattern: "[a-z][a-z0-9_]+"
+  keyword_pattern: "[A-Z][0-9A-Z_]+"
+
+parse:
+  additional_commands:
+    cpmaddpackage:
+      pargs:
+        nargs: "*"
+        flags: []
+      spelling: CPMAddPackage
+      kwargs: &cpmaddpackagekwargs
+        NAME: 1
+        FORCE: 1
+        VERSION: 1
+        GIT_TAG: 1
+        DOWNLOAD_ONLY: 1
+        GITHUB_REPOSITORY: 1
+        GITLAB_REPOSITORY: 1
+        GIT_REPOSITORY: 1
+        SVN_REPOSITORY: 1
+        SVN_REVISION: 1
+        SOURCE_DIR: 1
+        DOWNLOAD_COMMAND: 1
+        FIND_PACKAGE_ARGUMENTS: 1
+        NO_CACHE: 1
+        GIT_SHALLOW: 1
+        URL: 1
+        URL_HASH: 1
+        URL_MD5: 1
+        DOWNLOAD_NAME: 1
+        DOWNLOAD_NO_EXTRACT: 1
+        HTTP_USERNAME: 1
+        HTTP_PASSWORD: 1
+        EXCLUDE_FROM_ALL: 1
+        SYSTEM: 1
+        SOURCE_SUBDIR: 1
+        PATCHES: +
+        OPTIONS: +
+    cpmfindpackage:
+      pargs:
+        nargs: "*"
+        flags: []
+      spelling: CPMFindPackage
+      kwargs: *cpmaddpackagekwargs
+    cpmdeclarepackage:
+      pargs:
+        nargs: "*"
+        flags: []
+      spelling: CPMDeclarePackage
+      kwargs: *cpmaddpackagekwargs
+    packageproject:
+      pargs:
+        nargs: "*"
+        flags: []
+      spelling: packageProject
+      kwargs:
+        NAME: 1
+        VERSION: 1
+        NAMESPACE: 1
+        INCLUDE_DIR: 1
+        INCLUDE_DESTINATION: 1
+        INCLUDE_HEADER_PATTERN: 1
+        BINARY_DIR: 1
+        COMPATIBILITY: 1
+        VERSION_HEADER: 1
+        EXPORT_HEADER: 1
+        DISABLE_VERSION_SUFFIX: 1
+        CPACK: 1
+        DEPENDENCIES: +
+    cpmusepackagelock:
+      pargs: 1
+      spelling: CPMUsePackageLock
+    cpmregisterpackage:
+      pargs: 1
+      spelling: CPMRegisterPackage
+    cpmgetpackageversion:
+      pargs: 2
+      spelling: CPMGetPackageVersion

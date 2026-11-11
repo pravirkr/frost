@@ -1,0 +1,47 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
+
+# Both libraries supply types exposed by frost public headers, even when
+# frost itself is shared. Consumers must receive their include/link targets.
+find_dependency(dmt CONFIG)
+find_dependency(psrio 0.4 CONFIG)
+if(@FROST_BUILT_WITH_PSRDADA@)
+  find_dependency(PSRDADA)
+endif()
+
+set(FROST_BUILT_GPU "@FROST_GPU_BACKEND@")
+if(NOT @FROST_BUILT_AS_SHARED@)
+  find_dependency(OpenMP COMPONENTS CXX)
+  find_dependency(HDF5)
+  if(FROST_BUILT_GPU STREQUAL "CUDA")
+    find_dependency(CUDAToolkit)
+  elseif(FROST_BUILT_GPU STREQUAL "HIP")
+    find_dependency(hip CONFIG)
+    find_dependency(rocthrust CONFIG)
+    if(@FROST_BUILT_WITH_LIBHIPCXX@)
+      find_dependency(libhipcxx CONFIG)
+    endif()
+  endif()
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/frostTargets.cmake")
+
+# The fetched PSRDADA target has no export set, so shared frost links its
+# file in the build tree. Restore that private runtime dependency using the
+# installed imported target; consumers then get its runtime search path.
+if(@FROST_BUILT_AS_SHARED@ AND @FROST_BUILT_WITH_PSRDADA@)
+  get_target_property(_frost_configs frost::frost IMPORTED_CONFIGURATIONS)
+  foreach(frost_config IN LISTS _frost_configs)
+    string(TOUPPER "${frost_config}" frost_config)
+    set_property(
+      TARGET frost::frost
+      APPEND
+      PROPERTY IMPORTED_LINK_DEPENDENT_LIBRARIES_${frost_config} PSRDADA::psrdada
+    )
+  endforeach()
+  unset(_frost_configs)
+  unset(frost_config)
+endif()
+check_required_components(frost)

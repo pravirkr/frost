@@ -1,0 +1,223 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "FROST_BUILD_TESTING": "ON"
+      }
+    },
+    {
+      "name": "cpu",
+      "displayName": "CPU Release",
+      "description": "Default CPU-only Release build; build/.",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "FROST_GPU": "OFF"
+      }
+    },
+    {
+      "name": "cpu-debug",
+      "displayName": "CPU Debug",
+      "description": "CPU-only Debug build; build-debug/.",
+      "inherits": "cpu",
+      "binaryDir": "${sourceDir}/build-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "cpu-portable",
+      "displayName": "Portable CPU Release",
+      "description": "CPU Release without -march=native; build-cpu-portable/.",
+      "inherits": "cpu",
+      "binaryDir": "${sourceDir}/build-cpu-portable",
+      "cacheVariables": {
+        "FROST_ENABLE_NATIVE_ARCH": "OFF"
+      }
+    },
+    {
+      "name": "ci",
+      "displayName": "CPU CI",
+      "description": "Portable CPU Release with warnings as errors in frost targets; build-ci/.",
+      "inherits": "cpu-portable",
+      "binaryDir": "${sourceDir}/build-ci",
+      "cacheVariables": {
+        "FROST_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "cuda",
+      "displayName": "CUDA Release",
+      "description": "Require the CUDA backend; build-cuda/.",
+      "inherits": "cpu",
+      "binaryDir": "${sourceDir}/build-cuda",
+      "cacheVariables": {
+        "FROST_GPU": "CUDA"
+      }
+    },
+    {
+      "name": "hip",
+      "displayName": "HIP Release",
+      "description": "Require the HIP backend using lib/cuda sources; build-hip/.",
+      "inherits": "cpu",
+      "binaryDir": "${sourceDir}/build-hip",
+      "cacheVariables": {
+        "FROST_GPU": "HIP"
+      }
+    },
+    {
+      "name": "ci-tidy",
+      "displayName": "CPU static analysis",
+      "description": "Debug compile database for clang-tidy; build-ci-tidy/.",
+      "inherits": "cpu-debug",
+      "binaryDir": "${sourceDir}/build-ci-tidy",
+      "cacheVariables": {
+        "FROST_ENABLE_NATIVE_ARCH": "OFF"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release (GPU if available)",
+      "inherits": "cpu",
+      "binaryDir": "${sourceDir}/build-release",
+      "cacheVariables": {
+        "FROST_GPU": "AUTO"
+      }
+    },
+    {
+      "name": "asan",
+      "displayName": "CPU ASan/UBSan",
+      "description": "Debug at -O1 with address and undefined-behavior sanitizers.",
+      "inherits": "cpu-debug",
+      "binaryDir": "${sourceDir}/build-asan",
+      "cacheVariables": {
+        "FROST_ENABLE_NATIVE_ARCH": "OFF",
+        "FROST_DEBUG_OPTIMIZATION": "-O1",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,undefined",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=address,undefined"
+      }
+    },
+    {
+      "name": "coverage",
+      "displayName": "CPU coverage",
+      "inherits": "cpu-debug",
+      "binaryDir": "${sourceDir}/build-coverage",
+      "cacheVariables": {
+        "FROST_ENABLE_NATIVE_ARCH": "OFF",
+        "FROST_ENABLE_COVERAGE": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "cpu",
+      "configurePreset": "cpu"
+    },
+    {
+      "name": "cpu-debug",
+      "configurePreset": "cpu-debug"
+    },
+    {
+      "name": "cpu-portable",
+      "configurePreset": "cpu-portable"
+    },
+    {
+      "name": "ci",
+      "configurePreset": "ci"
+    },
+    {
+      "name": "cuda",
+      "configurePreset": "cuda"
+    },
+    {
+      "name": "hip",
+      "configurePreset": "hip"
+    },
+    {
+      "name": "ci-tidy",
+      "configurePreset": "ci-tidy"
+    },
+    {
+      "name": "release",
+      "configurePreset": "release"
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan"
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "test-base",
+      "hidden": true,
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "cpu",
+      "inherits": "test-base",
+      "configurePreset": "cpu"
+    },
+    {
+      "name": "cpu-debug",
+      "inherits": "test-base",
+      "configurePreset": "cpu-debug"
+    },
+    {
+      "name": "cpu-portable",
+      "inherits": "test-base",
+      "configurePreset": "cpu-portable"
+    },
+    {
+      "name": "ci",
+      "inherits": "test-base",
+      "configurePreset": "ci"
+    },
+    {
+      "name": "cuda",
+      "inherits": "test-base",
+      "configurePreset": "cuda"
+    },
+    {
+      "name": "hip",
+      "inherits": "test-base",
+      "configurePreset": "hip"
+    },
+    {
+      "name": "release",
+      "inherits": "test-base",
+      "configurePreset": "release"
+    },
+    {
+      "name": "asan",
+      "inherits": "test-base",
+      "configurePreset": "asan"
+    },
+    {
+      "name": "coverage",
+      "inherits": "test-base",
+      "configurePreset": "coverage"
+    }
+  ]
+}

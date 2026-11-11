@@ -1,0 +1,29 @@
+---
+BasedOnStyle: LLVM
+IndentWidth: 4
+---
+Language: Cpp
+AccessModifierOffset: -4
+AlignConsecutiveAssignments:
+  Enabled: true
+BinPackParameters: false
+DerivePointerAlignment: false
+# Preserve targeted suppressions and use the sister-project include groups.
+CommentPragmas: '^ (IWYU pragma:|NOLINT)'
+IncludeBlocks: Regroup
+IncludeIsMainRegex: "(_cpu|_cuda|_test|_t)?$"
+IncludeIsMainSourceRegex: '(\.cu)$'
+IncludeCategories:
+  - Regex: '^<frost/'
+    Priority: 3
+  - Regex: '^<[a-z0-9_]+>$'
+    Priority: 1
+  - Regex: '^<.*>$'
+    Priority: 2
+  - Regex: '^"lib/'
+    Priority: 4
+  - Regex: '^".*"'
+    Priority: 5
+PackConstructorInitializers: CurrentLine
+PointerAlignment: Left
+SortIncludes: CaseSensitive
