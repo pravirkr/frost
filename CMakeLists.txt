@@ -4,7 +4,7 @@ project(
   frost
   VERSION 0.1.0
   LANGUAGES CXX
-  DESCRIPTION "FDMT-accelerated Radio Optimal Search for Transients"
+  DESCRIPTION "FDMT-accelerated Optimal Search for Radio Transients"
 )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

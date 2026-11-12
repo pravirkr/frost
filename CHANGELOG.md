@@ -30,5 +30,7 @@ The first release, 0.1.0.
 - Installation of the CLI with `cmake --install`; the library, headers and
   CMake package are opt-in with `FROST_INSTALL_LIBRARY`.
 - User documentation on Read the Docs, and a conda `environment.yml`.
+- The frost logo (a snowflake of FDMT merge trees), favicon and README
+  banner, generated reproducibly by `docs/logo-src/make_logo.py`.
 
 [Unreleased]: https://github.com/pravirkr/frost/commits/main

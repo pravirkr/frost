@@ -48,6 +48,7 @@ docs/
   conf.py, requirements.txt     Sphinx site for Read the Docs (.readthedocs.yaml)
   index.md, getting_started/,   user documentation of the frost CLI
   user_guide/, reference/
+  logo-src/make_logo.py         logo generator; writes _static/logo/
 environment.yml                 conda environment with the system dependencies
 CHANGELOG.md                    release notes (Keep a Changelog)
 CITATION.cff                    software citation
@@ -97,7 +98,8 @@ lookup tables). Do not hand-optimise code that is not hot.
 - New user-facing capability is a CLI11 option on `frost`, never a new
   executable, and is documented in the user docs (see Documentation). No
   Python bindings or Python dependency; building, testing and running
-  frost never need Python. The documentation build is the one exception.
+  frost never need Python. The documentation build and the logo generator
+  (`docs/logo-src/make_logo.py`) are the only exceptions.
 - A new stage has its public header in `include/frost/<domain>/`, backend-
   neutral code in `lib/<domain>/`, and `lib/cpu/<name>_cpu.cpp` /
   `lib/cuda/<name>_cuda.cu` when needed.
@@ -245,6 +247,9 @@ cmake --preset cpu && cmake --build --preset cpu && ctest --preset cpu
   `sphinx-build -W -b html docs docs/_build/html` with the packages pinned
   in `docs/requirements.txt`. Read the Docs builds it, so it costs no CI
   minutes.
+- The logo, favicon and README banner in `docs/_static/logo/` are generated
+  by `uv run docs/logo-src/make_logo.py` from pinned, hash-checked fonts.
+  Change the script, not the SVGs.
 - `README.md` is a landing page: what frost is, a quickstart, a short
   install and links into the site. Details belong in the site.
 

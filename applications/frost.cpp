@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
     // Pass 2: full option set, seeded from `cfg` (struct defaults, or
     // pass 1's TOML-loaded values) so that any flag the user does not
     // pass on the command line keeps that value.
-    CLI::App app{"frost - FDMT-accelerated Radio Optimal Search for "
+    CLI::App app{"frost - FDMT-accelerated Optimal Search for Radio "
                  "Transients"};
     app.set_version_flag("--version", version_text,
                          "Print version and build information and exit");

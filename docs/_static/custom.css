@@ -1,27 +1,54 @@
-/* frost documentation styling. The accent is an ice blue, frost's own
-   colour beside dmt's sweep blue; the neutrals match dmt's ink. */
+/* frost documentation styling. Colours come from the logo
+   (docs/logo-src/make_logo.py): Glacier #0B5A8A on light, Ice #8FD3FF on
+   dark, Polar night #08121F, Frost #EAF6FF. The theme sets these on
+   html[data-theme], so a bare :root override would lose. */
 
 html[data-theme="light"] {
-    --pst-color-primary: #0b7fa3;
-    --pst-color-primary-highlight: #086683;
-    --frost-tint: rgba(11, 127, 163, 0.06);
-    --frost-tint-border: rgba(11, 127, 163, 0.22);
+    --pst-color-primary: #0b5a8a;
+    --pst-color-primary-highlight: #083f61;
+    --frost-tint: #eaf6ff;
+    --frost-tint-border: rgba(11, 90, 138, 0.22);
 }
 
 html[data-theme="dark"] {
-    --pst-color-primary: #6cc8e6;
-    --pst-color-primary-highlight: #95d9ef;
-    --frost-tint: rgba(108, 200, 230, 0.08);
-    --frost-tint-border: rgba(108, 200, 230, 0.25);
+    --pst-color-primary: #8fd3ff;
+    --pst-color-primary-highlight: #b8e3ff;
+    --frost-tint: rgba(143, 211, 255, 0.07);
+    --frost-tint-border: rgba(143, 211, 255, 0.25);
 }
 
-/* Home page hero. */
+/* Sidebar logo: the lockup is wide, so cap its height. */
+.navbar-brand img.logo__image {
+    height: 2.4rem;
+    width: auto;
+}
+
+/* Home page hero: the mark beside the lede. */
 .frost-hero {
+    display: flex;
+    align-items: center;
+    gap: 28px;
     border-radius: 12px;
     padding: 24px 28px;
     background: var(--frost-tint);
     border: 1px solid var(--frost-tint-border);
     margin-bottom: 24px;
+}
+
+.frost-hero-mark {
+    flex: 0 0 auto;
+    width: 104px;
+    height: auto;
+}
+
+@media (max-width: 576px) {
+    .frost-hero {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .frost-hero-mark {
+        width: 80px;
+    }
 }
 
 .frost-hero-lede {

@@ -1,6 +1,9 @@
-<h1 align="center">frost</h1>
-
-<p align="center"><b>FDMT-accelerated Radio Optimal Search for Transients</b></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/_static/logo/frost-banner-dark.svg">
+    <img alt="frost: FDMT-accelerated Optimal Search for Radio Transients" src="docs/_static/logo/frost-banner.svg" width="880">
+  </picture>
+</p>
 
 <div align="center">
 
@@ -11,37 +14,36 @@
 
 </div>
 
-**`frost`** searches channelised radio intensity data for fast radio bursts
-and single pulses. One command reads a filterbank file or a live PSRDADA
-stream, excises RFI, dedisperses every DM trial with the Fast Dispersion
-Measure Transform, matched-filters every pulse width, and writes a clean,
-clustered list of candidates.
+**FROST** (FDMT-accelerated Optimal Search for Radio Transients) is a C++20
+fast-radio-burst and single-pulse search pipeline for channelized intensity
+data, with CPU, CUDA and HIP backends. It provides a library (`frost::frost`)
+and one command-line application, `frost`.
 
 **[Documentation](https://frost.readthedocs.io)** ·
 [Installation](https://frost.readthedocs.io/en/latest/getting_started/installation.html) ·
 [First search](https://frost.readthedocs.io/en/latest/getting_started/quickstart.html) ·
 [CLI reference](https://frost.readthedocs.io/en/latest/reference/cli.html)
 
-## ✨ Highlights
+## Features
 
-- **One command.** Every capability is an option of `frost`, every option
-  has a default, and a TOML file can hold a survey's settings.
 - **Inputs.** Sigproc filterbank, Breakthrough Listen HDF5 (one beam of a
   multi-beam file) and live PSRDADA ring buffers on Linux, through
   [psrio](https://github.com/pravirkr/psrio).
 - **RFI excision.** Narrow- and broad-band excision by default; channel
   moments, IQRM, Kadane runs, dropouts, zero-DM, zdot and kill files when
   you need them.
-- **Exact search.** Streaming FDMT with boxcar or trapezoid filters through
+- **Search.** Streaming FDMT with boxcar or trapezoid filters through
   [dmt](https://github.com/pravirkr/dmt), with the exact noise of every DM
   and width, including masked channels.
-- **Sub-band search.** The full band, or also its halves and quarters, for
-  band-limited bursts, merged into one row per event.
+- **Sub-band search.** The full band plus half and quarter bands, including
+  staggered overlapping bands (1, 4 or 11 planes).
+- **Candidate post-processing**: per-plane rate limiting, friends-of-friends
+  clustering within each plane with bounded cross-gulp retention, and
+  association of nested sub-band detections along the dispersion curve.
 - **Fits the machine.** A memory plan before the first gulp, stage
   profiles, and a `run.toml` record of every run.
-- **CPU first.** OpenMP on the CPU; CUDA and HIP backends are experimental.
 
-## ⚡ Quickstart
+## Quickstart
 
 ```bash
 # Search a filterbank file up to DM 1000, writing to out/candidates.cand
@@ -58,7 +60,7 @@ Each row of the `.cand` file is one candidate: S/N, sample, time, width,
 DM and the band it was found in. See
 [Candidates](https://frost.readthedocs.io/en/latest/user_guide/candidates.html).
 
-## 📦 Installation
+## Installation
 
 frost builds from source with CMake 3.21+, a C++20 compiler (GCC 11+ or
 Clang 17+), OpenMP, HDF5 and FFTW. CMake fetches the other dependencies
@@ -77,13 +79,13 @@ through conda. See the
 [installation guide](https://frost.readthedocs.io/en/latest/getting_started/installation.html)
 for system packages, GPU builds and build options.
 
-## 📜 Citing
+## Citing
 
 A paper describing frost is in preparation. Until then, please cite the
 software ([`CITATION.cff`](CITATION.cff)) and the FDMT paper,
 [Zackay & Ofek (2017)](https://doi.org/10.3847/1538-4357/835/1/11).
 
-## 🛠️ Development
+## Development
 
 [`AGENTS.md`](AGENTS.md) and [`docs/architecture.md`](docs/architecture.md)
 describe the repository and its rules, [`docs/decisions.md`](docs/decisions.md)
@@ -91,6 +93,6 @@ the settled design choices, and [`docs/roadmap.md`](docs/roadmap.md) planned
 work and known limitations. Changes are listed in
 [`CHANGELOG.md`](CHANGELOG.md).
 
-## 📄 License
+## License
 
 frost is released under the [MIT License](LICENSE).

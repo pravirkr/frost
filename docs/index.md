@@ -2,8 +2,11 @@
 
 ```{raw} html
 <div class="frost-hero">
+  <img class="frost-hero-mark only-light" src="_static/logo/frost-mark.svg" alt="">
+  <img class="frost-hero-mark only-dark" src="_static/logo/frost-mark-dark.svg" alt="">
+  <div>
   <p class="frost-hero-lede">
-    <strong>FDMT-accelerated Radio Optimal Search for Transients.</strong>
+    <strong>FDMT-accelerated Optimal Search for Radio Transients.</strong>
     One command searches channelised intensity data for fast radio bursts
     and single pulses: RFI excision, dedispersion with the Fast Dispersion
     Measure Transform, matched filtering, and a clean list of candidates.
@@ -14,6 +17,7 @@
     <span class="frost-badge">Sub-band search</span>
     <span class="frost-badge">C++20 · OpenMP</span>
     <span class="frost-badge">CUDA &amp; HIP (experimental)</span>
+  </div>
   </div>
 </div>
 ```

@@ -41,6 +41,8 @@ exclude_patterns = [
     "Thumbs.db",
     ".DS_Store",
     "requirements.txt",
+    # Logo generator, its font cache and its exports; not pages.
+    "logo-src",
     # Developer documents, read in the repository rather than on the site.
     "architecture.md",
     "decisions.md",
@@ -75,9 +77,15 @@ html_theme_options = {
     "show_navbar_depth": 2,
     "navigation_with_keys": True,
     "toc_title": "On this page",
+    # The lockup already carries the name, so no text beside it.
+    # docs/logo-src/make_logo.py generates every file in _static/logo/.
+    "logo": {
+        "image_light": "_static/logo/frost-logo.svg",
+        "image_dark": "_static/logo/frost-logo-dark.svg",
+        "alt_text": "frost - FDMT-accelerated Optimal Search for Radio Transients",
+    },
 }
-# Logo: when docs/_static/logo/ exists, set html_theme_options["logo"]
-# (image_light / image_dark) and html_favicon here.
+html_favicon = "_static/logo/favicon.svg"
 
 # -- sphinx-copybutton -------------------------------------------------------
 # Commands in these pages carry no shell prompt; skip "#" comment lines.
