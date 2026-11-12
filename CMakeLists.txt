@@ -36,8 +36,14 @@ endif()
 # so a parent that adds frost with add_subdirectory or CPM gets neither.
 option(FROST_BUILD_TESTING "Build C++ tests" ${PROJECT_IS_TOP_LEVEL})
 option(FROST_INSTALL "Generate frost's install and package rules" ${PROJECT_IS_TOP_LEVEL})
-# A self-contained prefix: also install the fetched packages that an installed
-# frost needs (dmt, psrio, fmt, PSRDADA). Packagers that supply them turn it off.
+# The frost CLI is what users install. The library, its headers and CMake
+# package are opt-in; a shared build always installs them, since the CLI
+# links the shared library.
+option(FROST_INSTALL_LIBRARY "Also install libfrost, its headers and the frost CMake package"
+       OFF
+)
+# With the library: also install the fetched packages an installed frost::frost
+# needs (dmt, psrio, fmt, PSRDADA). Packagers that supply them turn it off.
 option(FROST_INSTALL_BUNDLED_DEPS "Install the fetched dependencies an installed frost needs" ON)
 option(FROST_ENABLE_COVERAGE "Enable coverage reporting" OFF)
 option(FROST_ENABLE_IPO "Enable interprocedural optimization (LTO) on Release builds" OFF)

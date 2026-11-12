@@ -1,6 +1,13 @@
-# Installation/export rules for frost::frost and its public headers.
-# Install / export: find_package(frost) + target frost::frost
+# Installation rules. The frost CLI (applications/CMakeLists.txt) is always
+# installed; libfrost, its public headers and the frost CMake package
+# (find_package(frost) + frost::frost) only with FROST_INSTALL_LIBRARY or a
+# shared build.
 include(CMakePackageConfigHelpers)
+
+set(FROST_INSTALLS_LIBRARY OFF)
+if(FROST_INSTALL_LIBRARY OR BUILD_SHARED_LIBS)
+  set(FROST_INSTALLS_LIBRARY ON)
+endif()
 
 # Keep prefix installs runnable without a build-tree path or loader env vars.
 # The executable finds sibling lib/lib64; shared frost finds dmt/PSRDADA beside it.
@@ -23,6 +30,28 @@ endif()
 set_target_properties(
   frost_app ${FROST_LIBRARY_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE
 )
+
+# fmt's export names its compiled library although frost uses the header-only
+# target. Build it even for a CLI-only install, so that reconfiguring with
+# FROST_INSTALL_LIBRARY=ON can install without another build.
+if(FROST_INSTALL_BUNDLED_DEPS)
+  get_property(_frost_bundled_fmt GLOBAL PROPERTY FROST_BUNDLED_FMT)
+  if(_frost_bundled_fmt)
+    add_dependencies(${FROST_LIBRARY_NAME} fmt)
+  endif()
+  unset(_frost_bundled_fmt)
+endif()
+
+if(NOT FROST_INSTALLS_LIBRARY)
+  # CLI only: the static library is linked into the executable, but PSRDADA is
+  # always shared and must sit in the library directory the CLI's RPATH names.
+  get_property(_frost_bundled_psrdada GLOBAL PROPERTY FROST_BUNDLED_PSRDADA)
+  if(_frost_bundled_psrdada)
+    install(TARGETS psrdada LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} NAMELINK_SKIP)
+  endif()
+  unset(_frost_bundled_psrdada)
+  return()
+endif()
 
 set(FROST_BUILT_WITH_LIBHIPCXX OFF)
 if(FROST_GPU_BACKEND STREQUAL "HIP" AND libhipcxx_FOUND)
@@ -100,15 +129,10 @@ unset(_frost_cmake_files)
 # frostDependencies.cmake). CPM adds them EXCLUDE_FROM_ALL, which drops their
 # install rules from this project, so their own install scripts run here.
 if(FROST_INSTALL_BUNDLED_DEPS)
-  get_property(_frost_bundled_fmt GLOBAL PROPERTY FROST_BUNDLED_FMT)
-  if(_frost_bundled_fmt)
-    add_dependencies(${FROST_LIBRARY_NAME} fmt)
-  endif()
   get_property(_frost_install_scripts GLOBAL PROPERTY FROST_BUNDLED_INSTALL_SCRIPTS)
   foreach(frost_script IN LISTS _frost_install_scripts)
     install(SCRIPT "${frost_script}")
   endforeach()
-  unset(_frost_bundled_fmt)
   unset(_frost_install_scripts)
   unset(frost_script)
 endif()

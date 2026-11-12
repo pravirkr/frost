@@ -171,6 +171,8 @@ if(FROST_WITH_PSRDADA AND psrdada_ADDED)
     GLOBAL APPEND PROPERTY FROST_BUNDLED_INSTALL_SCRIPTS
                            "${psrdada_BINARY_DIR}/src/cmake_install.cmake"
   )
+  # PSRDADA is always a shared library, so even a CLI-only install ships it.
+  set_property(GLOBAL PROPERTY FROST_BUNDLED_PSRDADA ON)
 endif()
 # fmt's export names its compiled library although frost uses the
 # header-only target; frostInstall.cmake builds it when it installs fmt.

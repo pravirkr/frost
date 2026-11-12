@@ -4,8 +4,9 @@
 #
 #   conda env create -f environment.yml
 #   conda activate frost
-#   cmake --preset cpu && cmake --build --preset cpu
-#   cmake --install build --prefix "$CONDA_PREFIX"
+#   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFROST_BUILD_TESTING=OFF
+#   cmake --build build -j
+#   cmake --install build --prefix "$CONDA_PREFIX"   # installs the frost CLI
 #
 # CUDA or HIP builds need their toolkit installed separately.
 name: frost

@@ -3,6 +3,10 @@
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
+#include <regex>
+#include <set>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -252,6 +256,51 @@ TEST_CASE("frost --version prints the release and build revisions",
     CHECK_THAT(r.output, ContainsSubstring("revision: "));
     CHECK_THAT(r.output, ContainsSubstring("dmt: "));
     CHECK_THAT(r.output, ContainsSubstring("psrio: "));
+}
+
+TEST_CASE("the CLI reference documents exactly the options frost offers",
+          "[cli][docs]") {
+    const auto help = run_frost("--help");
+    REQUIRE(help.status == 0);
+    std::ifstream file(FROST_CLI_REFERENCE);
+    REQUIRE(file);
+    const std::string reference((std::istreambuf_iterator<char>(file)),
+                                std::istreambuf_iterator<char>());
+
+    // Long options anywhere in the help text (names, --no- forms, aliases),
+    // and short options in the option column.
+    std::set<std::string> offered;
+    const std::regex long_option(R"(--[a-z][a-z0-9-]*)");
+    for (std::sregex_iterator it(help.output.begin(), help.output.end(),
+                                 long_option);
+         it != std::sregex_iterator(); ++it) {
+        offered.insert(it->str());
+    }
+    const std::regex short_option(R"(^\s+(-[a-z]),)");
+    std::istringstream lines(help.output);
+    for (std::string line; std::getline(lines, line);) {
+        std::smatch match;
+        if (std::regex_search(line, match, short_option)) {
+            offered.insert(match[1].str());
+        }
+    }
+    REQUIRE(offered.contains("--help"));
+
+    for (const auto& option : offered) {
+        INFO("frost --help offers " << option);
+        // A whole option in code: followed by a space, comma or backtick.
+        const std::regex documented("`" + option + "[ `,]");
+        CHECK(std::regex_search(reference, documented));
+    }
+    // And the page names no option that frost does not offer.
+    const std::regex documented_option(R"(`(--?[a-z][a-z0-9-]*))");
+    for (std::sregex_iterator it(reference.begin(), reference.end(),
+                                 documented_option);
+         it != std::sregex_iterator(); ++it) {
+        const auto option = (*it)[1].str();
+        INFO("docs/reference/cli.md documents " << option);
+        CHECK((offered.contains(option) || option == "-vv"));
+    }
 }
 
 TEST_CASE("frost exposes fused search controls and rejects unknown flags",

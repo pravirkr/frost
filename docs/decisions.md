@@ -68,11 +68,17 @@ deliberate decision recorded here in the same change.
   (`FROST_USE_SYSTEM_DEPS` stays a developer option), and frost is not
   published to a package-manager channel (conda-forge, Spack,
   distributions).
+- frost is for users of the `frost` CLI. `cmake --install` installs the CLI
+  alone; libfrost, its headers and the CMake package are opt-in
+  (`FROST_INSTALL_LIBRARY`) for the rare advanced user. There are no Python
+  bindings, and none are planned.
 - `environment.yml` is the one convenience: a conda environment with the
   system dependencies (compilers, CMake, HDF5, FFTW, OpenMP), for a local
   build and `cmake --install` into that environment.
 - A release is a `vX.Y.Z` git tag matching `project(VERSION)`, published as
   a GitHub release. There are no separate source tarballs or binaries.
+- User documentation is a Read the Docs site about the CLI, with no API
+  reference. `README.md` is a short landing page that links into it.
 - CI minutes are scarce: CI builds and tests the CPU code on Linux runners
   only. No CUDA, HIP, conda or container jobs; those paths are checked by
   hand.

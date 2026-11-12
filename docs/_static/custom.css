@@ -1,0 +1,62 @@
+/* frost documentation styling. The accent is an ice blue, frost's own
+   colour beside dmt's sweep blue; the neutrals match dmt's ink. */
+
+html[data-theme="light"] {
+    --pst-color-primary: #0b7fa3;
+    --pst-color-primary-highlight: #086683;
+    --frost-tint: rgba(11, 127, 163, 0.06);
+    --frost-tint-border: rgba(11, 127, 163, 0.22);
+}
+
+html[data-theme="dark"] {
+    --pst-color-primary: #6cc8e6;
+    --pst-color-primary-highlight: #95d9ef;
+    --frost-tint: rgba(108, 200, 230, 0.08);
+    --frost-tint-border: rgba(108, 200, 230, 0.25);
+}
+
+/* Home page hero. */
+.frost-hero {
+    border-radius: 12px;
+    padding: 24px 28px;
+    background: var(--frost-tint);
+    border: 1px solid var(--frost-tint-border);
+    margin-bottom: 24px;
+}
+
+.frost-hero-lede {
+    font-size: 1.15rem;
+    line-height: 1.6;
+    margin-bottom: 0.8rem;
+}
+
+.frost-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    margin: 0 6px 6px 0;
+    color: var(--pst-color-primary);
+    border: 1px solid var(--frost-tint-border);
+}
+
+/* Section rhythm: a hairline under each h2 so long guide pages scan easily. */
+.bd-article h2 {
+    margin-top: 2.4rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--pst-color-border);
+}
+
+/* Option names in the CLI reference tables should not wrap. */
+.bd-article table td:first-child code {
+    white-space: nowrap;
+}
+
+div.highlight {
+    border-radius: 8px;
+}
+
+.sd-card.sd-card-hover:hover {
+    transform: translateY(-2px);
+}

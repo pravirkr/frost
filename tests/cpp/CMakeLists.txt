@@ -82,6 +82,7 @@ function(frost_add_test_suite target suite)
     ${target} PRIVATE FROST_APP_PATH="$<TARGET_FILE:frost_app>"
                       FROST_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
                       FROST_PROJECT_VERSION="${PROJECT_VERSION}"
+                      FROST_CLI_REFERENCE="${PROJECT_SOURCE_DIR}/docs/reference/cli.md"
   )
   frost_enable_coverage(${target})
   catch_discover_tests(

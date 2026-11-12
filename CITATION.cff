@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: >-
+  If you use frost in your research, please cite it as below. A paper
+  describing frost is in preparation.
+title: "frost: FDMT-accelerated Radio Optimal Search for Transients"
+type: software
+authors:
+  - family-names: Kumar
+    given-names: Pravir
+repository-code: "https://github.com/pravirkr/frost"
+license: MIT
+version: 0.1.0
+keywords:
+  - radio astronomy
+  - fast radio bursts
+  - single-pulse search
+  - dedispersion
+  - FDMT

@@ -66,15 +66,23 @@ jobs:
           ctest --preset ci --parallel 4
           CXX="$CXX" BUILD_DIR=build-ci scripts/check_architecture.sh
           ccache --show-stats
-      - name: Install and check a public consumer
+      - name: Install the CLI
+        run: |
+          # The default install is the frost CLI alone (plus libpsrdada on Linux).
+          cmake --install build-ci --prefix "$RUNNER_TEMP/frost-cli"
+          find "$RUNNER_TEMP/frost-cli" -type f -o -type l | sort
+          test ! -d "$RUNNER_TEMP/frost-cli/include"
+          env -i "$RUNNER_TEMP/frost-cli/bin/frost" --version
+      - name: Install the library and check a public consumer
         env:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
         run: |
-          # One install must give a usable prefix: frost installs the bundled
-          # dmt, psrio, fmt and PSRDADA it needs (FROST_INSTALL_BUNDLED_DEPS).
+          # With FROST_INSTALL_LIBRARY one install must give a usable prefix:
+          # frost installs the bundled dmt, psrio, fmt and PSRDADA it needs.
+          # Reconfiguring only changes install rules; nothing needs rebuilding.
+          cmake --preset ci -DFROST_INSTALL_LIBRARY=ON
           cmake --install build-ci --prefix "$RUNNER_TEMP/frost"
-          "$RUNNER_TEMP/frost/bin/frost" --help
           cmake -S tests/consumer -B build-consumer -G Ninja \
             -DCMAKE_CXX_COMPILER="$CXX" -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/frost"
           cmake --build build-consumer --parallel 4

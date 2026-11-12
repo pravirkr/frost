@@ -42,8 +42,15 @@ tests/
   cpp/support/                  shared fixtures
   cpp/data/                     local recordings, gitignored
   consumer/                     external public-target smoke project
-docs/                           architecture, decisions, RFI, roadmap
+docs/
+  architecture.md, decisions.md developer documents, not published
+  rfi.md, roadmap.md
+  conf.py, requirements.txt     Sphinx site for Read the Docs (.readthedocs.yaml)
+  index.md, getting_started/,   user documentation of the frost CLI
+  user_guide/, reference/
 environment.yml                 conda environment with the system dependencies
+CHANGELOG.md                    release notes (Keep a Changelog)
+CITATION.cff                    software citation
 ```
 
 ## Boundaries
@@ -88,7 +95,9 @@ lookup tables). Do not hand-optimise code that is not hot.
 - CPU-only plans are implemented directly in `lib/cpu/`, without a
   forwarding facade.
 - New user-facing capability is a CLI11 option on `frost`, never a new
-  executable. No Python bindings or Python dependency.
+  executable, and is documented in the user docs (see Documentation). No
+  Python bindings or Python dependency; building, testing and running
+  frost never need Python. The documentation build is the one exception.
 - A new stage has its public header in `include/frost/<domain>/`, backend-
   neutral code in `lib/<domain>/`, and `lib/cpu/<name>_cpu.cpp` /
   `lib/cuda/<name>_cuda.cu` when needed.
@@ -177,12 +186,16 @@ No new third-party dependency without discussion first.
   configure time; dmt and psrio reuse it through `CPM_PATH`, which their
   bootstraps check against the same SHA-256. Update it by replacing the file
   with a newer release; never edit it.
-- `cmake --install` alone gives a usable prefix. With
-  `FROST_INSTALL_BUNDLED_DEPS` (default on), frost also runs the install
-  scripts of the fetched packages its installed config needs: dmt, psrio,
+- `cmake --install` installs the `frost` CLI only (plus the shared
+  `libpsrdada` it links on Linux). `FROST_INSTALL_LIBRARY` adds libfrost,
+  the public headers and the CMake package; a shared build
+  (`BUILD_SHARED_LIBS`) always does, since the CLI links it. With the
+  library, `FROST_INSTALL_BUNDLED_DEPS` (default on) also runs the install
+  scripts of the fetched packages the installed config needs: dmt, psrio,
   fmt and PSRDADA. A dependency newly exposed through public headers or
-  `frostConfig.cmake` joins that list in `frostDependencies.cmake`, and the
-  CI consumer job checks the result.
+  `frostConfig.cmake` joins that list in `frostDependencies.cmake`. CI
+  checks both installs: the CLI alone, and the library with the consumer
+  project.
 - frost behaves as a subproject: tests (`FROST_BUILD_TESTING`) and install
   rules (`FROST_INSTALL`) default to `PROJECT_IS_TOP_LEVEL`, and the build
   type and CPM settings it chooses never override a parent's cache.
@@ -215,6 +228,26 @@ cmake --preset cpu && cmake --build --preset cpu && ctest --preset cpu
   (`scripts/ci_static_analysis.sh`); every suppression names a check and
   gives a reason.
 
+## Documentation
+
+- The published site (Sphinx with MyST Markdown, built by Read the Docs
+  from `.readthedocs.yaml`) documents the `frost` CLI: installation, usage,
+  every option and the `.cand` format. It has no API reference; the public
+  headers document the library, and `docs/reference/library.md` covers
+  linking it.
+- The developer documents in `docs/` (this file, `decisions.md`,
+  `roadmap.md`, `rfi.md`) are excluded from the site in `docs/conf.py`.
+  Site pages link to them by GitHub URL.
+- A new or changed option updates `docs/reference/cli.md` and the user
+  guide page it belongs to. The `api:` CTest case `[cli][docs]` fails when
+  `frost --help` and `docs/reference/cli.md` disagree.
+- The site builds without warnings:
+  `sphinx-build -W -b html docs docs/_build/html` with the packages pinned
+  in `docs/requirements.txt`. Read the Docs builds it, so it costs no CI
+  minutes.
+- `README.md` is a landing page: what frost is, a quickstart, a short
+  install and links into the site. Details belong in the site.
+
 ## Changes
 
 - Work on a branch and open a pull request against `main`.
@@ -231,6 +264,8 @@ cmake --preset cpu && cmake --build --preset cpu && ctest --preset cpu
   both follow the major version.
 - The installed config requires at least the pinned dmt and psrio versions
   (`FROST_DMT_VERSION`, `FROST_PSRIO_VERSION`).
-- A release bumps `project(VERSION)` on `main`, then tags that commit
-  `vX.Y.Z` and publishes it as a GitHub release. There are no separate
+- A release bumps `project(VERSION)` (and `version` in `CITATION.cff`) on
+  `main` and moves `CHANGELOG.md`'s Unreleased entries under the new
+  version, then tags that commit `vX.Y.Z` and publishes it as a GitHub
+  release. There are no separate
   tarballs or binaries (see [`decisions.md`](decisions.md)).
