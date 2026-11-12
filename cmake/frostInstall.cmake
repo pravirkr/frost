@@ -18,6 +18,11 @@ if(_frost_loader_path)
   )
   set_target_properties(${FROST_LIBRARY_NAME} PROPERTIES INSTALL_RPATH "${_frost_loader_path}")
 endif()
+# Also keep the directories of linked libraries outside the build tree (for
+# example Homebrew's libomp); CMake leaves out implicit system directories.
+set_target_properties(
+  frost_app ${FROST_LIBRARY_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE
+)
 
 set(FROST_BUILT_WITH_LIBHIPCXX OFF)
 if(FROST_GPU_BACKEND STREQUAL "HIP" AND libhipcxx_FOUND)
@@ -80,3 +85,20 @@ if(FROST_WITH_PSRDADA)
 endif()
 install(FILES ${_frost_cmake_files} DESTINATION ${FROST_CMAKE_PACKAGE_DIR})
 unset(_frost_cmake_files)
+
+# Bundled dependencies an installed frost needs (listed by
+# frostDependencies.cmake). CPM adds them EXCLUDE_FROM_ALL, which drops their
+# install rules from this project, so their own install scripts run here.
+if(FROST_INSTALL_BUNDLED_DEPS)
+  get_property(_frost_bundled_fmt GLOBAL PROPERTY FROST_BUNDLED_FMT)
+  if(_frost_bundled_fmt)
+    add_dependencies(${FROST_LIBRARY_NAME} fmt)
+  endif()
+  get_property(_frost_install_scripts GLOBAL PROPERTY FROST_BUNDLED_INSTALL_SCRIPTS)
+  foreach(frost_script IN LISTS _frost_install_scripts)
+    install(SCRIPT "${frost_script}")
+  endforeach()
+  unset(_frost_bundled_fmt)
+  unset(_frost_install_scripts)
+  unset(frost_script)
+endif()

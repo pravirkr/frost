@@ -69,6 +69,36 @@ tuning, and `FROST_CPU_ARCH` selects an explicit target. Other presets
 [`CMakePresets.json`](CMakePresets.json). Machine-specific settings belong
 in an ignored `CMakeUserPresets.json`.
 
+## Install
+
+One install gives a self-contained prefix with the `frost` CLI, the
+library, and the fetched dependencies that an installed frost needs (dmt,
+psrio, fmt and, on Linux, PSRDADA):
+
+```bash
+cmake --install build --prefix /opt/frost
+```
+
+Then use the library from CMake:
+
+```cmake
+find_package(frost CONFIG REQUIRED)    # with -DCMAKE_PREFIX_PATH=/opt/frost
+target_link_libraries(my_app PRIVATE frost::frost)
+```
+
+Packagers that provide dmt, psrio and fmt themselves configure with
+`-DFROST_USE_SYSTEM_DEPS=ON -DFROST_INSTALL_BUNDLED_DEPS=OFF`. Release
+builds default to `-march=native`, so binaries meant for other machines
+should use the `cpu-portable` preset or set `FROST_CPU_ARCH`.
+
+To build without network access, point `CPM_SOURCE_CACHE` at a directory
+filled by an earlier configure. CPM itself is vendored in
+[`cmake/CPM.cmake`](cmake/CPM.cmake).
+
+frost can also be a subproject (`add_subdirectory` or `CPMAddPackage`).
+There, `FROST_BUILD_TESTING` and `FROST_INSTALL` default to off and the
+parent's build type is left alone.
+
 ## Usage
 
 ```bash

@@ -71,15 +71,8 @@ jobs:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
         run: |
-          # CPM dependencies are EXCLUDE_FROM_ALL; install their public/runtime
-          # packages explicitly before testing a standalone consumer.
-          cmake --build build-ci --target fmt
-          for package in fmt psrio dmt; do
-            cmake --install "build-ci/_deps/${package}-build" --prefix "$RUNNER_TEMP/frost"
-          done
-          # PSRDADA root installs absolute package metadata; only its runtime
-          # and headers are needed by our FindPSRDADA module.
-          cmake --install build-ci/_deps/psrdada-build/src --prefix "$RUNNER_TEMP/frost"
+          # One install must give a usable prefix: frost installs the bundled
+          # dmt, psrio, fmt and PSRDADA it needs (FROST_INSTALL_BUNDLED_DEPS).
           cmake --install build-ci --prefix "$RUNNER_TEMP/frost"
           "$RUNNER_TEMP/frost/bin/frost" --help
           cmake -S tests/consumer -B build-consumer -G Ninja \

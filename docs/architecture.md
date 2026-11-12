@@ -26,6 +26,7 @@ lib/
   cuda/*_cuda.cu, *.cuh         CUDA/HIP implementations and toolkit helpers
 applications/frost.cpp          the single CLI
 cmake/
+  CPM.cmake                     vendored CPM 0.43.1, byte-identical to upstream
   frostBuildInfo.cmake          build metadata header generation
   frostCompilerOptions.cmake    host compiler policy and coverage
   frostGPU.cmake                GPU toolchain selection and options
@@ -169,6 +170,19 @@ No new third-party dependency without discussion first.
 - CPM-pinned: dmt, psrio, PSRDADA (Linux, `FROST_WITH_PSRDADA`), fmt,
   spdlog, HighFive, xsimd, toml++, CLI11, Catch2. Local checkouts are opt-in
   only (`-DCPM_dmt_SOURCE=/path/to/dmt`).
+- `cmake/CPM.cmake` is the unmodified CPM release, never downloaded at
+  configure time; dmt and psrio reuse it through `CPM_PATH`, which their
+  bootstraps check against the same SHA-256. Update it by replacing the file
+  with a newer release; never edit it.
+- `cmake --install` alone gives a usable prefix. With
+  `FROST_INSTALL_BUNDLED_DEPS` (default on), frost also runs the install
+  scripts of the fetched packages its installed config needs: dmt, psrio,
+  fmt and PSRDADA. A dependency newly exposed through public headers or
+  `frostConfig.cmake` joins that list in `frostDependencies.cmake`, and the
+  CI consumer job checks the result.
+- frost behaves as a subproject: tests (`FROST_BUILD_TESTING`) and install
+  rules (`FROST_INSTALL`) default to `PROJECT_IS_TOP_LEVEL`, and the build
+  type and CPM settings it chooses never override a parent's cache.
 - Optional: CUDA ≥ 12.2 or ROCm/HIP ≥ 6.2.
 - Logging is spdlog; formatting is `fmt::format`.
 

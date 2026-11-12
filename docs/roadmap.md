@@ -133,6 +133,30 @@ bottleneck on the fused engine.
 - xsimd is already a dependency but unused. Apply it to a CPU kernel only
   after that kernel is measured to be hot.
 
+## Packaging
+
+A plain `cmake --install` gives a self-contained prefix, frost works as a
+subproject, and configuring works offline from a filled `CPM_SOURCE_CACHE`.
+Still to do:
+
+- **Versioning and releases.** `frost --version`; `VERSION`/`SOVERSION` on
+  `libfrost`; `SameMinorVersion` compatibility while on 0.x (the current
+  `SameMajorVersion` treats every 0.x release as compatible); versioned
+  `find_dependency(dmt ...)`; a `v0.1.0` tag and a release workflow with a
+  source tarball. Builds from a tarball report the revision `unknown`.
+- **Reproducible pins.** `URL_HASH` on every tarball dependency; dmt pinned
+  by commit like psrio; a more reliable source for PSRDADA than SourceForge
+  git.
+- **CI coverage.** A macOS job; shared-library builds with the installed
+  consumer (`frostInstall.cmake` and `frostConfig.cmake.in` have
+  shared-only paths that CI never runs); `FROST_USE_SYSTEM_DEPS=ON`; the
+  `add_subdirectory` consumer path.
+- **Portable release binaries.** Release builds default to `-march=native`.
+  Decide the target for distributed binaries (a packaging preset or a fixed
+  `FROST_CPU_ARCH`) and record it in `decisions.md`.
+- **Distribution.** conda-forge, Spack, and a container image (with a CUDA
+  variant), once the items above are in place.
+
 ## Future capabilities
 
 ### Multi-beam coincidencing

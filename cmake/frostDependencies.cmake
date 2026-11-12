@@ -147,6 +147,33 @@ if(NOT TARGET psrio::psrio)
   message(FATAL_ERROR "psrio::psrio target not available after CPM setup.")
 endif()
 
+# Fetched packages an installed frost needs: frostConfig.cmake finds dmt and
+# psrio, psrio's config finds fmt, and a PSRDADA build finds libpsrdada.
+# CPM's <name>_ADDED and <name>_BINARY_DIR exist only in this directory
+# scope, so record their install scripts for frostInstall.cmake. A package
+# taken from the system (FROST_USE_SYSTEM_DEPS) is not ADDED and not listed.
+# PSRDADA's top-level install writes package metadata to an absolute path
+# outside the prefix; FindPSRDADA.cmake needs only the library and headers
+# that its src/ directory installs.
+foreach(frost_package IN ITEMS fmt psrio dmt)
+  if(${frost_package}_ADDED)
+    set_property(
+      GLOBAL APPEND PROPERTY FROST_BUNDLED_INSTALL_SCRIPTS
+                             "${${frost_package}_BINARY_DIR}/cmake_install.cmake"
+    )
+  endif()
+endforeach()
+unset(frost_package)
+if(FROST_WITH_PSRDADA AND psrdada_ADDED)
+  set_property(
+    GLOBAL APPEND PROPERTY FROST_BUNDLED_INSTALL_SCRIPTS
+                           "${psrdada_BINARY_DIR}/src/cmake_install.cmake"
+  )
+endif()
+# fmt's export names its compiled library although frost uses the
+# header-only target; frostInstall.cmake builds it when it installs fmt.
+set_property(GLOBAL PROPERTY FROST_BUNDLED_FMT ${fmt_ADDED})
+
 # -----------------------------------------------------------------------
 # 3b. Other header-only CPM dependencies
 # -----------------------------------------------------------------------
