@@ -81,6 +81,7 @@ function(frost_add_test_suite target suite)
   target_compile_definitions(
     ${target} PRIVATE FROST_APP_PATH="$<TARGET_FILE:frost_app>"
                       FROST_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
+                      FROST_PROJECT_VERSION="${PROJECT_VERSION}"
   )
   frost_enable_coverage(${target})
   catch_discover_tests(

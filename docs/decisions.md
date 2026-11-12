@@ -60,6 +60,23 @@ deliberate decision recorded here in the same change.
 - `.cand` files have 23 tab-separated columns; the first nine follow the
   common single-pulse layout.
 
+## Packaging
+
+- Installs are network installs: CMake fetches the pinned dependencies
+  through CPM at configure time. Offline builds and builds against system
+  copies of those dependencies are not supported install paths
+  (`FROST_USE_SYSTEM_DEPS` stays a developer option), and frost is not
+  published to a package-manager channel (conda-forge, Spack,
+  distributions).
+- `environment.yml` is the one convenience: a conda environment with the
+  system dependencies (compilers, CMake, HDF5, FFTW, OpenMP), for a local
+  build and `cmake --install` into that environment.
+- A release is a `vX.Y.Z` git tag matching `project(VERSION)`, published as
+  a GitHub release. There are no separate source tarballs or binaries.
+- CI minutes are scarce: CI builds and tests the CPU code on Linux runners
+  only. No CUDA, HIP, conda or container jobs; those paths are checked by
+  hand.
+
 ## Platform
 
 - One helper derives the frequency axis for both dedispersion and band

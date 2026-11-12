@@ -43,6 +43,7 @@ tests/
   cpp/data/                     local recordings, gitignored
   consumer/                     external public-target smoke project
 docs/                           architecture, decisions, RFI, roadmap
+environment.yml                 conda environment with the system dependencies
 ```
 
 ## Boundaries
@@ -170,6 +171,8 @@ No new third-party dependency without discussion first.
 - CPM-pinned: dmt, psrio, PSRDADA (Linux, `FROST_WITH_PSRDADA`), fmt,
   spdlog, HighFive, xsimd, toml++, CLI11, Catch2. Local checkouts are opt-in
   only (`-DCPM_dmt_SOURCE=/path/to/dmt`).
+- Installs fetch dependencies over the network (`decisions.md`).
+  `environment.yml` lists the system dependencies; CI does not test it.
 - `cmake/CPM.cmake` is the unmodified CPM release, never downloaded at
   configure time; dmt and psrio reuse it through `CPM_PATH`, which their
   bootstraps check against the same SHA-256. Update it by replacing the file
@@ -217,3 +220,17 @@ cmake --preset cpu && cmake --build --preset cpu && ctest --preset cpu
 - Work on a branch and open a pull request against `main`.
 - Update [`decisions.md`](decisions.md) when a frozen choice changes and
   [`roadmap.md`](roadmap.md) when planned work or limitations change.
+
+## Versions and releases
+
+- `project(VERSION)` in `CMakeLists.txt` is the only version. The build
+  info, `frost::build_info()`, `frost --version`, the shared library's
+  `VERSION`/`SOVERSION` and `frostConfigVersion.cmake` all follow it.
+- Before 1.0 any minor release may break the API and ABI: the soname is
+  `MAJOR.MINOR` and `find_package(frost X.Y)` accepts only `X.Y.*`. From 1.0
+  both follow the major version.
+- The installed config requires at least the pinned dmt and psrio versions
+  (`FROST_DMT_VERSION`, `FROST_PSRIO_VERSION`).
+- A release bumps `project(VERSION)` on `main`, then tags that commit
+  `vX.Y.Z` and publishes it as a GitHub release. There are no separate
+  tarballs or binaries (see [`decisions.md`](decisions.md)).

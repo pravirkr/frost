@@ -105,8 +105,8 @@ on the host; candidate processing and output stay on the host.
 - Run the `[gpu][parity]` pipeline and normalization tests on CUDA hardware
   for the current FDMTBoxcar path, including warm tails, masks and `drain()`.
 - Renew compute-sanitizer coverage on the current device path.
-- Build and test CUDA (12.2 minimum) and HIP on real CI runners and
-  hardware; HIP has not been compiled yet.
+- Build and test CUDA (12.2 minimum) and HIP by hand on real hardware (CI
+  stays CPU-only, see `decisions.md`); HIP has not been compiled yet.
 - Share CPU/GPU behaviour fixtures so parity tests exercise the same
   contracts on both backends.
 - Move toward a shared RFI execution core for host and device, so that
@@ -135,27 +135,20 @@ bottleneck on the fused engine.
 
 ## Packaging
 
-A plain `cmake --install` gives a self-contained prefix, frost works as a
-subproject, and configuring works offline from a filled `CPM_SOURCE_CACHE`.
-Still to do:
+frost installs from source over the network: CPM fetches the pinned
+dependencies, `environment.yml` provides the system ones, and a plain
+`cmake --install` gives a self-contained prefix. frost also works as a CPM
+subproject. Still to do:
 
-- **Versioning and releases.** `frost --version`; `VERSION`/`SOVERSION` on
-  `libfrost`; `SameMinorVersion` compatibility while on 0.x (the current
-  `SameMajorVersion` treats every 0.x release as compatible); versioned
-  `find_dependency(dmt ...)`; a `v0.1.0` tag and a release workflow with a
-  source tarball. Builds from a tarball report the revision `unknown`.
-- **Reproducible pins.** `URL_HASH` on every tarball dependency; dmt pinned
-  by commit like psrio; a more reliable source for PSRDADA than SourceForge
-  git.
-- **CI coverage.** A macOS job; shared-library builds with the installed
-  consumer (`frostInstall.cmake` and `frostConfig.cmake.in` have
-  shared-only paths that CI never runs); `FROST_USE_SYSTEM_DEPS=ON`; the
-  `add_subdirectory` consumer path.
-- **Portable release binaries.** Release builds default to `-march=native`.
-  Decide the target for distributed binaries (a packaging preset or a fixed
-  `FROST_CPU_ARCH`) and record it in `decisions.md`.
-- **Distribution.** conda-forge, Spack, and a container image (with a CUDA
-  variant), once the items above are in place.
+- **First release.** Tag `v0.1.0` and publish it as a GitHub release.
+- **Reproducible pins.** `URL_HASH` on every downloaded dependency archive;
+  dmt pinned by commit like psrio; a more reliable source for PSRDADA than
+  SourceForge git.
+- **Untested install paths.** CI runs neither shared-library builds
+  (`frostInstall.cmake` and `frostConfig.cmake.in` have shared-only paths)
+  nor the `add_subdirectory`/CPM consumer path, and `environment.yml` is
+  checked only by hand (on macOS). Cover them in the existing CI jobs where
+  that costs few minutes; otherwise check by hand before a release.
 
 ## Future capabilities
 

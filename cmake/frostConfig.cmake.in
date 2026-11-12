@@ -5,8 +5,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}")
 
 # Both libraries supply types exposed by frost public headers, even when
 # frost itself is shared. Consumers must receive their include/link targets.
-find_dependency(dmt CONFIG)
-find_dependency(psrio 0.5 CONFIG)
+# At least the versions frost was built against (the pins).
+find_dependency(dmt @FROST_DMT_VERSION@ CONFIG)
+find_dependency(psrio @FROST_PSRIO_VERSION@ CONFIG)
 if(@FROST_BUILT_WITH_PSRDADA@)
   find_dependency(PSRDADA)
 endif()

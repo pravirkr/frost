@@ -65,16 +65,26 @@ install(
   DESTINATION ${FROST_CMAKE_PACKAGE_DIR}
 )
 
+get_property(FROST_DMT_VERSION GLOBAL PROPERTY FROST_DMT_VERSION)
+get_property(FROST_PSRIO_VERSION GLOBAL PROPERTY FROST_PSRIO_VERSION)
 configure_package_config_file(
   ${PROJECT_SOURCE_DIR}/cmake/frostConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/frostConfig.cmake
   INSTALL_DESTINATION ${FROST_CMAKE_PACKAGE_DIR}
 )
 
+# Before 1.0 any minor release may break the API, so find_package(frost 0.1)
+# accepts 0.1.x only. From 1.0 a major release marks a break.
+if(PROJECT_VERSION_MAJOR EQUAL 0)
+  set(_frost_compatibility SameMinorVersion)
+else()
+  set(_frost_compatibility SameMajorVersion)
+endif()
 write_basic_package_version_file(
   ${CMAKE_CURRENT_BINARY_DIR}/frostConfigVersion.cmake
   VERSION ${PROJECT_VERSION}
-  COMPATIBILITY SameMajorVersion
+  COMPATIBILITY ${_frost_compatibility}
 )
+unset(_frost_compatibility)
 
 set(_frost_cmake_files
     ${CMAKE_CURRENT_BINARY_DIR}/frostConfig.cmake

@@ -71,33 +71,38 @@ in an ignored `CMakeUserPresets.json`.
 
 ## Install
 
-One install gives a self-contained prefix with the `frost` CLI, the
-library, and the fetched dependencies that an installed frost needs (dmt,
-psrio, fmt and, on Linux, PSRDADA):
+frost builds from source; configuring needs network access, because CMake
+fetches the pinned dependencies through CPM. The system dependencies come
+from your package manager, or from the conda environment in
+[`environment.yml`](environment.yml):
 
 ```bash
-cmake --install build --prefix /opt/frost
+git clone https://github.com/pravirkr/frost.git && cd frost
+conda env create -f environment.yml && conda activate frost
+cmake --preset cpu && cmake --build --preset cpu
+cmake --install build --prefix "$CONDA_PREFIX"
+frost --version    # release, commit and build settings
 ```
 
-Then use the library from CMake:
+Without conda, install into any prefix, for example
+`cmake --install build --prefix /opt/frost`. One install gives a
+self-contained prefix: the `frost` CLI, the library, and the fetched
+dependencies an installed frost needs (dmt, psrio, fmt and, on Linux,
+PSRDADA). Releases are `vX.Y.Z` tags on GitHub.
+
+To use the library in another CMake project, fetch it with CPM:
 
 ```cmake
-find_package(frost CONFIG REQUIRED)    # with -DCMAKE_PREFIX_PATH=/opt/frost
+CPMAddPackage(NAME frost GIT_REPOSITORY https://github.com/pravirkr/frost.git GIT_TAG v0.1.0)
 target_link_libraries(my_app PRIVATE frost::frost)
 ```
 
-Packagers that provide dmt, psrio and fmt themselves configure with
-`-DFROST_USE_SYSTEM_DEPS=ON -DFROST_INSTALL_BUNDLED_DEPS=OFF`. Release
-builds default to `-march=native`, so binaries meant for other machines
-should use the `cpu-portable` preset or set `FROST_CPU_ARCH`.
+As a subproject frost builds no tests, adds no install rules and leaves
+the parent's build type alone. An installed frost works the same way
+through `find_package(frost CONFIG REQUIRED)`.
 
-To build without network access, point `CPM_SOURCE_CACHE` at a directory
-filled by an earlier configure. CPM itself is vendored in
-[`cmake/CPM.cmake`](cmake/CPM.cmake).
-
-frost can also be a subproject (`add_subdirectory` or `CPMAddPackage`).
-There, `FROST_BUILD_TESTING` and `FROST_INSTALL` default to off and the
-parent's build type is left alone.
+Release builds default to `-march=native`. Binaries meant to run on other
+machines should use the `cpu-portable` preset or set `FROST_CPU_ARCH`.
 
 ## Usage
 

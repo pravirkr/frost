@@ -243,6 +243,17 @@ TEST_CASE("frost per-gulp files from an earlier run are overwritten",
     CHECK(total_bytes() == first);
 }
 
+TEST_CASE("frost --version prints the release and build revisions",
+          "[cli][version]") {
+    const auto r = run_frost("--version");
+    CHECK(r.status == 0);
+    CHECK(r.output.starts_with(std::string("frost ") + FROST_PROJECT_VERSION +
+                               "\n"));
+    CHECK_THAT(r.output, ContainsSubstring("revision: "));
+    CHECK_THAT(r.output, ContainsSubstring("dmt: "));
+    CHECK_THAT(r.output, ContainsSubstring("psrio: "));
+}
+
 TEST_CASE("frost exposes fused search controls and rejects unknown flags",
           "[cli]") {
     const auto help = run_frost("--help");

@@ -75,9 +75,10 @@ unset(DMT_CUDA CACHE)
 # Development checkouts are opt-in: -DCPM_dmt_SOURCE=/path/to/dmt.
 # An adjacent checkout must not silently replace the pinned dependency.
 set(FROST_DMT_REVISION v0.8.0)
+set(FROST_DMT_VERSION 0.8.0)
 CPMAddPackage(
   NAME dmt
-  VERSION 0.8.0
+  VERSION ${FROST_DMT_VERSION}
   GIT_REPOSITORY https://github.com/pravirkr/dmt.git
   GIT_TAG ${FROST_DMT_REVISION}
   OPTIONS "DMT_BUILD_PYTHON OFF"
@@ -134,9 +135,10 @@ endif()
 
 # psrio 0.5.0 shares fmt and the GCC 11 baseline with dmt.
 set(FROST_PSRIO_REVISION b2d0da516580614bf8341924e51d153f48c4d9bb) # v0.5.0
+set(FROST_PSRIO_VERSION 0.5.0)
 CPMAddPackage(
   NAME psrio
-  VERSION 0.5.0
+  VERSION ${FROST_PSRIO_VERSION}
   GIT_REPOSITORY https://github.com/pravirkr/psrio.git
   GIT_TAG ${FROST_PSRIO_REVISION}
   OPTIONS "PSRIO_BUILD_TESTS OFF" "PSRIO_WITH_HDF5 OFF" "PSRIO_WITH_PSRDADA OFF" "PSRIO_INSTALL ON"
@@ -173,6 +175,9 @@ endif()
 # fmt's export names its compiled library although frost uses the
 # header-only target; frostInstall.cmake builds it when it installs fmt.
 set_property(GLOBAL PROPERTY FROST_BUNDLED_FMT ${fmt_ADDED})
+# The pinned versions are the minimums frostConfig.cmake asks for.
+set_property(GLOBAL PROPERTY FROST_DMT_VERSION ${FROST_DMT_VERSION})
+set_property(GLOBAL PROPERTY FROST_PSRIO_VERSION ${FROST_PSRIO_VERSION})
 
 # -----------------------------------------------------------------------
 # 3b. Other header-only CPM dependencies
