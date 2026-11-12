@@ -154,9 +154,9 @@ endif()
 # CPM's <name>_ADDED and <name>_BINARY_DIR exist only in this directory
 # scope, so record their install scripts for frostInstall.cmake. A package
 # taken from the system (FROST_USE_SYSTEM_DEPS) is not ADDED and not listed.
-# PSRDADA's top-level install writes package metadata to an absolute path
-# outside the prefix; FindPSRDADA.cmake needs only the library and headers
-# that its src/ directory installs.
+# PSRDADA's install scripts hardcode paths (an absolute export path at the top
+# level and lib/ rather than CMAKE_INSTALL_LIBDIR in src/), so frostInstall.cmake
+# installs its target and headers directly instead.
 foreach(frost_package IN ITEMS fmt psrio dmt)
   if(${frost_package}_ADDED)
     set_property(
@@ -167,10 +167,6 @@ foreach(frost_package IN ITEMS fmt psrio dmt)
 endforeach()
 unset(frost_package)
 if(FROST_WITH_PSRDADA AND psrdada_ADDED)
-  set_property(
-    GLOBAL APPEND PROPERTY FROST_BUNDLED_INSTALL_SCRIPTS
-                           "${psrdada_BINARY_DIR}/src/cmake_install.cmake"
-  )
   # PSRDADA is always a shared library, so even a CLI-only install ships it.
   set_property(GLOBAL PROPERTY FROST_BUNDLED_PSRDADA ON)
 endif()

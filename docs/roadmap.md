@@ -149,7 +149,6 @@ dependencies, `environment.yml` provides the system ones, and a plain
 self-contained library prefix). frost also works as a CPM subproject. The
 user documentation is a Sphinx site for Read the Docs. Still to do:
 
-- **First release.** Tag `v0.1.0` and publish it as a GitHub release.
 - **Reproducible pins.** `URL_HASH` on every downloaded dependency archive;
   dmt pinned by commit like psrio; a more reliable source for PSRDADA than
   SourceForge git.

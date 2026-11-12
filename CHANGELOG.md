@@ -8,6 +8,8 @@ the library API.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-12
+
 The first release, 0.1.0.
 
 ### Added
@@ -33,4 +35,5 @@ The first release, 0.1.0.
 - The frost logo (a snowflake of FDMT merge trees), tagline lockup and
   favicon, generated reproducibly by `docs/logo-src/make_logo.py`.
 
-[Unreleased]: https://github.com/pravirkr/frost/commits/main
+[Unreleased]: https://github.com/pravirkr/frost/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/pravirkr/frost/releases/tag/v0.1.0
