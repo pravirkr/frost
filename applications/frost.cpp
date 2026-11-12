@@ -3,6 +3,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -11,6 +12,7 @@
 #include <fmt/core.h>
 #include <spdlog/spdlog.h>
 
+#include <frost/common/version.hpp>
 #include <frost/config/config.hpp>
 #include <frost/dedisp/dedisp.hpp>
 #include <frost/output/provenance.hpp>
@@ -31,6 +33,27 @@ void set_log_level(int verbosity) {
     } else {
         spdlog::set_level(spdlog::level::debug);
     }
+}
+
+// `frost --version`: the release first, then what a bug report needs.
+std::string version_text() {
+    const auto& info = frost::build_info();
+    // FROST_CPU_ARCH overrides native tuning (frostCompilerOptions.cmake).
+    std::string_view arch = info.native_arch == "ON" ? "native" : "portable";
+    if (!info.cpu_arch.empty()) {
+        arch = info.cpu_arch;
+    }
+    const std::string_view gpu =
+        info.gpu_toolchain.empty() ? "off" : info.gpu_toolchain;
+    return fmt::format("frost {}\n"
+                       "revision: {}\n"
+                       "dmt: {}\n"
+                       "psrio: {}\n"
+                       "compiler: {}\n"
+                       "build: {}, GPU {}, arch {}",
+                       info.version, info.revision, info.dmt_revision,
+                       info.psrio_revision, info.compiler, info.build_type, gpu,
+                       arch);
 }
 
 } // namespace
@@ -63,8 +86,10 @@ int main(int argc, char** argv) {
     // Pass 2: full option set, seeded from `cfg` (struct defaults, or
     // pass 1's TOML-loaded values) so that any flag the user does not
     // pass on the command line keeps that value.
-    CLI::App app{"frost - FDMT-accelerated Radio Optimal Search for "
+    CLI::App app{"frost - FDMT-accelerated Optimal Search for Radio "
                  "Transients"};
+    app.set_version_flag("--version", version_text,
+                         "Print version and build information and exit");
     app.add_option("--config", config_path,
                    "Path to a TOML pipeline config file");
     auto* file_opt =

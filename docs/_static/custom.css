@@ -1,0 +1,129 @@
+/* frost documentation styling. Colours come from the logo
+   (docs/logo-src/make_logo.py): Glacier #0B5A8A on light, Ice #8FD3FF on
+   dark, Polar night #08121F, Frost #EAF6FF. The theme sets these on
+   html[data-theme], so a bare :root override would lose. */
+
+html[data-theme="light"] {
+    --pst-color-primary: #0b5a8a;
+    --pst-color-primary-highlight: #083f61;
+    --frost-tint: #eaf6ff;
+    --frost-tint-border: rgba(11, 90, 138, 0.18);
+    --frost-pill-bg: rgba(255, 255, 255, 0.85);
+    --frost-watermark-opacity: 0.105;
+}
+
+html[data-theme="dark"] {
+    --pst-color-primary: #8fd3ff;
+    --pst-color-primary-highlight: #b8e3ff;
+    --frost-tint: rgba(143, 211, 255, 0.06);
+    --frost-tint-border: rgba(143, 211, 255, 0.22);
+    --frost-pill-bg: rgba(143, 211, 255, 0.08);
+    --frost-watermark-opacity: 0.11;
+}
+
+/* Sidebar logo: the lockup is wide, so cap its height. */
+.navbar-brand img.logo__image {
+    height: 2.35rem;
+    width: auto;
+}
+
+/* Home page hero: copy and pills on a pale tint with an etched crystal
+   inset cleanly on the right side of the banner. */
+.frost-hero {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    padding: 26px 30px;
+    background: var(--frost-tint);
+    border: 1px solid var(--frost-tint-border);
+    margin: 0.4rem 0 1.5rem 0;
+}
+
+.frost-hero-copy {
+    position: relative;
+    z-index: 1;
+}
+
+.frost-hero-watermark {
+    position: absolute;
+    right: 26px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 140px;
+    height: auto;
+    opacity: var(--frost-watermark-opacity);
+    pointer-events: none;
+    user-select: none;
+}
+
+.frost-hero-title {
+    font-size: 1.28rem;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.55rem 0;
+    color: var(--pst-color-text-base);
+}
+
+.frost-hero-lede {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    max-width: calc(100% - 148px);
+    margin: 0 0 0.9rem 0;
+    color: var(--pst-color-text-muted);
+}
+
+@media (max-width: 768px) {
+    .frost-hero {
+        padding: 22px 24px;
+    }
+    .frost-hero-lede {
+        max-width: 100%;
+    }
+    .frost-hero-watermark {
+        display: none;
+    }
+}
+
+.frost-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.frost-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    color: var(--pst-color-primary);
+    background: var(--frost-pill-bg);
+    border: 1px solid var(--frost-tint-border);
+}
+
+/* Section rhythm: a hairline under each h2 so long guide pages scan easily. */
+.bd-article h2 {
+    margin-top: 2.4rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--pst-color-border);
+}
+
+/* Option names in the CLI reference tables should not wrap. */
+.bd-article table td:first-child code {
+    white-space: nowrap;
+}
+
+div.highlight {
+    border-radius: 8px;
+}
+
+.sd-card {
+    border-radius: 10px;
+    transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.sd-card.sd-card-hover:hover {
+    transform: translateY(-2px);
+    border-color: var(--frost-tint-border);
+}

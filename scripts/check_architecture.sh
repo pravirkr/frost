@@ -3,7 +3,7 @@
 #
 # Usage: scripts/check_architecture.sh
 #   CXX=<compiler>     compiler for the standalone public-header check (default c++)
-#   BUILD_DIR=<dir>    configured build directory supplying CPM _deps includes
+#   BUILD_DIR=<dir>    configured build directory whose CPM packages supply includes
 #   SKIP_COMPILE=1     skip the standalone public-header check
 #
 # Exits non-zero and prints every violation found.
@@ -103,21 +103,25 @@ if [[ "${SKIP_COMPILE:-0}" != 1 ]]; then
     section "public headers compile standalone"
     cxx=${CXX:-c++}
     inc_flags=()
-    deps_dir=""
+    build_dir=""
     for cand in "${BUILD_DIR:-}" build build-ci-tidy build-ci build-release; do
-        if [[ -n "$cand" && -d "$cand/_deps" ]]; then
-            deps_dir="$cand/_deps"
+        if [[ -n "$cand" && -f "$cand/CMakeCache.txt" ]]; then
+            build_dir="$cand"
             break
         fi
     done
-    if [[ -n "$deps_dir" ]]; then
+    if [[ -n "$build_dir" ]]; then
+        # CPM records where each package's sources are: build/_deps/<pkg>-src
+        # by default, or a CPM_SOURCE_CACHE directory (as in CI).
         for pkg in dmt psrio fmt spdlog; do
-            if [[ -d "$deps_dir/${pkg}-src/include" ]]; then
-                inc_flags+=(-isystem "$deps_dir/${pkg}-src/include")
+            src=$(sed -n "s/^CPM_PACKAGE_${pkg}_SOURCE_DIR:[A-Z]*=//p" "$build_dir/CMakeCache.txt")
+            src=${src:-$build_dir/_deps/${pkg}-src}
+            if [[ -d "$src/include" ]]; then
+                inc_flags+=(-isystem "$src/include")
             fi
         done
     fi
-    if [[ -n "$deps_dir" ]] || echo '#include <dmt/common/backend.hpp>' |
+    if [[ -n "$build_dir" ]] || echo '#include <dmt/common/backend.hpp>' |
         "$cxx" -std=c++20 -fsyntax-only -x c++ - >/dev/null 2>&1; then
         for h in $(cd include && find frost -name '*.hpp' | sort); do
             if ! out=$(echo "#include <$h>" |

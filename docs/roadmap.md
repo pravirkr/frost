@@ -71,6 +71,14 @@ the total false-alarm rate, or a trials-corrected significance column.
 - `.cand` has no absolute arrival-time column. Run provenance (`run.toml`)
   records the start time but is not a substitute.
 
+### Short-input summary and capacity
+
+On `tests/cpp/data/benchmark_J0540_decimated.fil` (9765 samples) with
+`--dm-max 1000`, `frost` prints `searched 0` yet writes 28 candidates, and
+warns that FDMTBoxcar dropped 934973 candidates globally. Find out whether
+the summary's searched count misses samples searched at end of input
+(`drain()`), and why a file this short overflows the candidate capacity.
+
 ### Validation before performance or sensitivity claims
 
 Record executable revisions, full effective configuration, input hashes,
@@ -105,8 +113,8 @@ on the host; candidate processing and output stay on the host.
 - Run the `[gpu][parity]` pipeline and normalization tests on CUDA hardware
   for the current FDMTBoxcar path, including warm tails, masks and `drain()`.
 - Renew compute-sanitizer coverage on the current device path.
-- Build and test CUDA (12.2 minimum) and HIP on real CI runners and
-  hardware; HIP has not been compiled yet.
+- Build and test CUDA (12.2 minimum) and HIP by hand on real hardware (CI
+  stays CPU-only, see `decisions.md`); HIP has not been compiled yet.
 - Share CPU/GPU behaviour fixtures so parity tests exercise the same
   contracts on both backends.
 - Move toward a shared RFI execution core for host and device, so that
@@ -132,6 +140,27 @@ bottleneck on the fused engine.
   of default cleaning time.
 - xsimd is already a dependency but unused. Apply it to a CPU kernel only
   after that kernel is measured to be hot.
+
+## Packaging
+
+frost installs from source over the network: CPM fetches the pinned
+dependencies, `environment.yml` provides the system ones, and a plain
+`cmake --install` installs the CLI (`FROST_INSTALL_LIBRARY` adds a
+self-contained library prefix). frost also works as a CPM subproject. The
+user documentation is a Sphinx site for Read the Docs. Still to do:
+
+- **Reproducible pins.** `URL_HASH` on every downloaded dependency archive;
+  dmt pinned by commit like psrio; a more reliable source for PSRDADA than
+  SourceForge git.
+- **Read the Docs pull-request builds.** Enable them on the `frost` project,
+  so documentation changes are checked without CI minutes.
+- **GitHub social preview.** Upload `social-preview.png` from
+  `uv run docs/logo-src/make_logo.py --exports` in the repository settings.
+- **Untested install paths.** CI runs neither shared-library builds
+  (`frostInstall.cmake` and `frostConfig.cmake.in` have shared-only paths)
+  nor the `add_subdirectory`/CPM consumer path, and `environment.yml` is
+  checked only by hand (on macOS). Cover them in the existing CI jobs where
+  that costs few minutes; otherwise check by hand before a release.
 
 ## Future capabilities
 

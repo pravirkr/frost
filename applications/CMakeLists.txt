@@ -6,4 +6,6 @@ target_link_libraries(
   frost_app PRIVATE frost::frost CLI11::CLI11 ${FROST_COMPILE_OPTIONS} fmt::fmt-header-only
                     spdlog::spdlog_header_only
 )
-install(TARGETS frost_app RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+if(FROST_INSTALL)
+  install(TARGETS frost_app RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+endif()

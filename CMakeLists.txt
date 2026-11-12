@@ -4,7 +4,7 @@ project(
   frost
   VERSION 0.1.0
   LANGUAGES CXX
-  DESCRIPTION "FDMT-accelerated Radio Optimal Search for Transients"
+  DESCRIPTION "FDMT-accelerated Optimal Search for Radio Transients"
 )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -32,7 +32,19 @@ else()
 endif()
 
 # Configuration options
-option(FROST_BUILD_TESTING "Build C++ tests" ON)
+# Tests and install rules default on only when frost is the top-level project,
+# so a parent that adds frost with add_subdirectory or CPM gets neither.
+option(FROST_BUILD_TESTING "Build C++ tests" ${PROJECT_IS_TOP_LEVEL})
+option(FROST_INSTALL "Generate frost's install and package rules" ${PROJECT_IS_TOP_LEVEL})
+# The frost CLI is what users install. The library, its headers and CMake
+# package are opt-in; a shared build always installs them, since the CLI
+# links the shared library.
+option(FROST_INSTALL_LIBRARY "Also install libfrost, its headers and the frost CMake package"
+       OFF
+)
+# With the library: also install the fetched packages an installed frost::frost
+# needs (dmt, psrio, fmt, PSRDADA). Packagers that supply them turn it off.
+option(FROST_INSTALL_BUNDLED_DEPS "Install the fetched dependencies an installed frost needs" ON)
 option(FROST_ENABLE_COVERAGE "Enable coverage reporting" OFF)
 option(FROST_ENABLE_IPO "Enable interprocedural optimization (LTO) on Release builds" OFF)
 option(FROST_ENABLE_NATIVE_ARCH "Use -march=native in Release builds" ON)
@@ -69,7 +81,11 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) # Required for shared libraries
 
 # Default to Release when no build type is specified (packaging-friendly).
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+# A parent project owns the build type.
+if(PROJECT_IS_TOP_LEVEL
+   AND NOT CMAKE_BUILD_TYPE
+   AND NOT CMAKE_CONFIGURATION_TYPES
+)
   message(STATUS "Setting build type to 'Release' as none was specified.")
   set(CMAKE_BUILD_TYPE
       Release
@@ -117,12 +133,24 @@ include(frostCompilerOptions)
 # (lib/CMakeLists.txt). Resolved once; dmt receives the concrete backend.
 include(frostGPU)
 
-# CPM.cmake Setup
-include(cmake/CPM.cmake)
-set(CPM_USE_LOCAL_PACKAGES
-    ${FROST_USE_SYSTEM_DEPS}
-    CACHE BOOL "Try to find packages locally before downloading" FORCE
-)
+# CPM.cmake 0.43.1 is vendored unmodified (upstream release asset, SHA-256
+# 1c40fc10...2934), so configuring never downloads CPM itself. dmt and psrio
+# bootstrap the same release from CPM_PATH and skip their download when the
+# file there matches its hash. They get a build-tree copy: a dependency that
+# pins another CPM release would redownload over that copy, never over the
+# source file.
+file(COPY "${PROJECT_SOURCE_DIR}/cmake/CPM.cmake" DESTINATION "${PROJECT_BINARY_DIR}/cmake/cpm")
+set(CPM_PATH "${PROJECT_BINARY_DIR}/cmake/cpm")
+# CPM skips loading when its cached CPM_DIRECTORY names another directory,
+# assuming a parent already loaded it. Without CPMAddPackage defined in this
+# run, that entry is stale (an earlier configure used another location).
+if(NOT COMMAND CPMAddPackage)
+  unset(CPM_DIRECTORY CACHE)
+endif()
+include("${CPM_PATH}/CPM.cmake")
+# A directory-scope variable: it applies to frost's dependencies and leaves
+# a parent project's CPM_USE_LOCAL_PACKAGES cache entry alone.
+set(CPM_USE_LOCAL_PACKAGES ${FROST_USE_SYSTEM_DEPS})
 if(DEFINED ENV{CPM_SOURCE_CACHE})
   set(CPM_SOURCE_CACHE
       $ENV{CPM_SOURCE_CACHE}
@@ -142,7 +170,9 @@ if(FROST_BUILD_TESTING)
   add_subdirectory(tests/cpp)
 endif()
 
-include(frostInstall)
+if(FROST_INSTALL)
+  include(frostInstall)
+endif()
 
 # Print feature summary
 include(FeatureSummary)

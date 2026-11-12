@@ -1,0 +1,31 @@
+# System dependencies for building and installing frost locally in a conda
+# environment. CMake fetches the remaining pinned dependencies (dmt, psrio,
+# fmt, ...) through CPM, so configuring needs network access.
+#
+#   conda env create -f environment.yml
+#   conda activate frost
+#   cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DFROST_BUILD_TESTING=OFF
+#   cmake --build build -j
+#   cmake --install build --prefix "$CONDA_PREFIX"   # installs the frost CLI
+#
+# CUDA or HIP builds need their toolkit installed separately.
+name: frost
+channels:
+  - conda-forge
+dependencies:
+  - cmake>=3.21
+  - ninja
+  - git           # CPM fetches the pinned dependencies with git
+  - pkg-config    # finds this environment's FFTW before any system copy
+  - c-compiler    # PSRDADA (Linux) is C
+  - cxx-compiler  # GCC on Linux, Clang on macOS; C++20 needs GCC 11 / Clang 17
+  - llvm-openmp   # OpenMP for conda's Clang on macOS
+  - hdf5
+  - fftw          # includes the single-precision libfftw3f that dmt needs
+  - ccache
+variables:
+  # macOS: conda's libc++ headers mark floating-point std::from_chars (used
+  # by psrio) unavailable for every deployment target, although the libc++
+  # in this environment, which frost links, provides it. conda-forge's
+  # documented fix; libstdc++ on Linux ignores it.
+  CXXFLAGS: -D_LIBCPP_DISABLE_AVAILABILITY

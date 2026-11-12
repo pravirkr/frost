@@ -81,8 +81,13 @@ function(frost_add_test_suite target suite)
   target_compile_definitions(
     ${target} PRIVATE FROST_APP_PATH="$<TARGET_FILE:frost_app>"
                       FROST_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data"
+                      FROST_PROJECT_VERSION="${PROJECT_VERSION}"
+                      FROST_CLI_REFERENCE="${PROJECT_SOURCE_DIR}/docs/reference/cli.md"
   )
   frost_enable_coverage(${target})
+  # One OpenMP thread per test: CTest runs tests in parallel, and more
+  # threads per test oversubscribe the cores. Tests that exercise threading
+  # set their own count.
   catch_discover_tests(
     ${target}
     TEST_SPEC
@@ -93,7 +98,7 @@ function(frost_add_test_suite target suite)
     LABELS
     "cpu"
     ENVIRONMENT
-    "OMP_NUM_THREADS=4"
+    "OMP_NUM_THREADS=1"
   )
   if(FROST_GPU_BACKEND)
     string(TOLOWER ${FROST_GPU_BACKEND} gpu_name)
@@ -107,7 +112,7 @@ function(frost_add_test_suite target suite)
       LABELS
       "gpu"
       ENVIRONMENT
-      "OMP_NUM_THREADS=4"
+      "OMP_NUM_THREADS=1"
     )
   endif()
 endfunction()

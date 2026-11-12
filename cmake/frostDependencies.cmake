@@ -75,9 +75,10 @@ unset(DMT_CUDA CACHE)
 # Development checkouts are opt-in: -DCPM_dmt_SOURCE=/path/to/dmt.
 # An adjacent checkout must not silently replace the pinned dependency.
 set(FROST_DMT_REVISION v0.8.0)
+set(FROST_DMT_VERSION 0.8.0)
 CPMAddPackage(
   NAME dmt
-  VERSION 0.8.0
+  VERSION ${FROST_DMT_VERSION}
   GIT_REPOSITORY https://github.com/pravirkr/dmt.git
   GIT_TAG ${FROST_DMT_REVISION}
   OPTIONS "DMT_BUILD_PYTHON OFF"
@@ -132,11 +133,12 @@ endif()
 # 3. Header-only CPM dependencies (build-time only)
 # -----------------------------------------------------------------------
 
-# psrio 0.4.0 shares fmt and the GCC 11 baseline with dmt.
-set(FROST_PSRIO_REVISION 402f24f0e787431befe5b632914338bb6533829f) # v0.4.0
+# psrio 0.5.0 shares fmt and the GCC 11 baseline with dmt.
+set(FROST_PSRIO_REVISION b2d0da516580614bf8341924e51d153f48c4d9bb) # v0.5.0
+set(FROST_PSRIO_VERSION 0.5.0)
 CPMAddPackage(
   NAME psrio
-  VERSION 0.4.0
+  VERSION ${FROST_PSRIO_VERSION}
   GIT_REPOSITORY https://github.com/pravirkr/psrio.git
   GIT_TAG ${FROST_PSRIO_REVISION}
   OPTIONS "PSRIO_BUILD_TESTS OFF" "PSRIO_WITH_HDF5 OFF" "PSRIO_WITH_PSRDADA OFF" "PSRIO_INSTALL ON"
@@ -146,6 +148,34 @@ CPMAddPackage(
 if(NOT TARGET psrio::psrio)
   message(FATAL_ERROR "psrio::psrio target not available after CPM setup.")
 endif()
+
+# Fetched packages an installed frost needs: frostConfig.cmake finds dmt and
+# psrio, psrio's config finds fmt, and a PSRDADA build finds libpsrdada.
+# CPM's <name>_ADDED and <name>_BINARY_DIR exist only in this directory
+# scope, so record their install scripts for frostInstall.cmake. A package
+# taken from the system (FROST_USE_SYSTEM_DEPS) is not ADDED and not listed.
+# PSRDADA's install scripts hardcode paths (an absolute export path at the top
+# level and lib/ rather than CMAKE_INSTALL_LIBDIR in src/), so frostInstall.cmake
+# installs its target and headers directly instead.
+foreach(frost_package IN ITEMS fmt psrio dmt)
+  if(${frost_package}_ADDED)
+    set_property(
+      GLOBAL APPEND PROPERTY FROST_BUNDLED_INSTALL_SCRIPTS
+                             "${${frost_package}_BINARY_DIR}/cmake_install.cmake"
+    )
+  endif()
+endforeach()
+unset(frost_package)
+if(FROST_WITH_PSRDADA AND psrdada_ADDED)
+  # PSRDADA is always a shared library, so even a CLI-only install ships it.
+  set_property(GLOBAL PROPERTY FROST_BUNDLED_PSRDADA ON)
+endif()
+# fmt's export names its compiled library although frost uses the
+# header-only target; frostInstall.cmake builds it when it installs fmt.
+set_property(GLOBAL PROPERTY FROST_BUNDLED_FMT ${fmt_ADDED})
+# The pinned versions are the minimums frostConfig.cmake asks for.
+set_property(GLOBAL PROPERTY FROST_DMT_VERSION ${FROST_DMT_VERSION})
+set_property(GLOBAL PROPERTY FROST_PSRIO_VERSION ${FROST_PSRIO_VERSION})
 
 # -----------------------------------------------------------------------
 # 3b. Other header-only CPM dependencies

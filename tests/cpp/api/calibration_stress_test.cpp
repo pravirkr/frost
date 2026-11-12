@@ -1,8 +1,6 @@
 #include <array>
-#include <charconv>
 #include <cmath>
 #include <cstdlib>
-#include <string_view>
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -18,19 +16,7 @@ constexpr uint32_t kStressSeed = kSeed + 128;
 constexpr std::array<SizeType, 3> kWidths{1, 4, 16};
 
 uint32_t seed_count() {
-    const char* value = std::getenv("FROST_CALIBRATION_STRESS_SEEDS");
-    if (value == nullptr)
-        return 4;
-    const std::string_view text(value);
-    uint32_t count = 0;
-    const auto result =
-        std::from_chars(text.data(), text.data() + text.size(), count);
-    if (result.ec != std::errc{} || result.ptr != text.data() + text.size() ||
-        count < 1 || count > 128) {
-        throw std::invalid_argument(
-            "FROST_CALIBRATION_STRESS_SEEDS must be an integer in [1,128]");
-    }
-    return count;
+    return study_seeds("FROST_CALIBRATION_STRESS_SEEDS", 1, 1, 128);
 }
 
 std::vector<Scenario> cleaners(uint32_t seed) {

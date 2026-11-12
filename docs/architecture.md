@@ -26,6 +26,7 @@ lib/
   cuda/*_cuda.cu, *.cuh         CUDA/HIP implementations and toolkit helpers
 applications/frost.cpp          the single CLI
 cmake/
+  CPM.cmake                     vendored CPM 0.43.1, byte-identical to upstream
   frostBuildInfo.cmake          build metadata header generation
   frostCompilerOptions.cmake    host compiler policy and coverage
   frostGPU.cmake                GPU toolchain selection and options
@@ -41,7 +42,16 @@ tests/
   cpp/support/                  shared fixtures
   cpp/data/                     local recordings, gitignored
   consumer/                     external public-target smoke project
-docs/                           architecture, decisions, RFI, roadmap
+docs/
+  architecture.md, decisions.md developer documents, not published
+  rfi.md, roadmap.md
+  conf.py, requirements.txt     Sphinx site for Read the Docs (.readthedocs.yaml)
+  index.md, getting_started/,   user documentation of the frost CLI
+  user_guide/, reference/
+  logo-src/make_logo.py         logo generator; writes _static/logo/
+environment.yml                 conda environment with the system dependencies
+CHANGELOG.md                    release notes (Keep a Changelog)
+CITATION.cff                    software citation
 ```
 
 ## Boundaries
@@ -86,7 +96,10 @@ lookup tables). Do not hand-optimise code that is not hot.
 - CPU-only plans are implemented directly in `lib/cpu/`, without a
   forwarding facade.
 - New user-facing capability is a CLI11 option on `frost`, never a new
-  executable. No Python bindings or Python dependency.
+  executable, and is documented in the user docs (see Documentation). No
+  Python bindings or Python dependency; building, testing and running
+  frost never need Python. The documentation build and the logo generator
+  (`docs/logo-src/make_logo.py`) are the only exceptions.
 - A new stage has its public header in `include/frost/<domain>/`, backend-
   neutral code in `lib/<domain>/`, and `lib/cpu/<name>_cpu.cpp` /
   `lib/cuda/<name>_cuda.cu` when needed.
@@ -169,6 +182,25 @@ No new third-party dependency without discussion first.
 - CPM-pinned: dmt, psrio, PSRDADA (Linux, `FROST_WITH_PSRDADA`), fmt,
   spdlog, HighFive, xsimd, toml++, CLI11, Catch2. Local checkouts are opt-in
   only (`-DCPM_dmt_SOURCE=/path/to/dmt`).
+- Installs fetch dependencies over the network (`decisions.md`).
+  `environment.yml` lists the system dependencies; CI does not test it.
+- `cmake/CPM.cmake` is the unmodified CPM release, never downloaded at
+  configure time; dmt and psrio reuse it through `CPM_PATH`, which their
+  bootstraps check against the same SHA-256. Update it by replacing the file
+  with a newer release; never edit it.
+- `cmake --install` installs the `frost` CLI only (plus the shared
+  `libpsrdada` it links on Linux). `FROST_INSTALL_LIBRARY` adds libfrost,
+  the public headers and the CMake package; a shared build
+  (`BUILD_SHARED_LIBS`) always does, since the CLI links it. With the
+  library, `FROST_INSTALL_BUNDLED_DEPS` (default on) also runs the install
+  scripts of the fetched packages the installed config needs: dmt, psrio,
+  fmt and PSRDADA. A dependency newly exposed through public headers or
+  `frostConfig.cmake` joins that list in `frostDependencies.cmake`. CI
+  checks both installs: the CLI alone, and the library with the consumer
+  project.
+- frost behaves as a subproject: tests (`FROST_BUILD_TESTING`) and install
+  rules (`FROST_INSTALL`) default to `PROJECT_IS_TOP_LEVEL`, and the build
+  type and CPM settings it chooses never override a parent's cache.
 - Optional: CUDA ≥ 12.2 or ROCm/HIP ≥ 6.2.
 - Logging is spdlog; formatting is `fmt::format`.
 
@@ -191,6 +223,13 @@ cmake --preset cpu && cmake --build --preset cpu && ctest --preset cpu
 - Tests assert intended behaviour with independent oracles, not whatever
   the implementation produces. When a synthetic fixture does not trigger
   the expected behaviour, suspect the fixture first.
+- CTest runs tests in parallel with `OMP_NUM_THREADS=1`, so they never
+  oversubscribe the cores; a test of threaded behaviour sets its own count.
+- The `[calibration]` studies run a few seeds by default, enough for every
+  assertion on the full pipeline. Run them at scale with
+  `FROST_CALIBRATION_RECOVERY_SEEDS`, `FROST_CALIBRATION_STRESS_SEEDS` or
+  `FROST_CALIBRATION_POLICY_SEEDS`, and set `FROST_CALIBRATION_OUTPUT` to a
+  directory to write their CSV tables.
 - Data-dependent tests (`[data]`) read local recordings from
   `tests/cpp/data/` (gitignored) and skip when they are absent.
 - Format changed files only: `pre-commit run clang-format --files <files>`
@@ -198,8 +237,47 @@ cmake --preset cpu && cmake --build --preset cpu && ctest --preset cpu
   (`scripts/ci_static_analysis.sh`); every suppression names a check and
   gives a reason.
 
+## Documentation
+
+- The published site (Sphinx with MyST Markdown, built by Read the Docs
+  from `.readthedocs.yaml`) documents the `frost` CLI: installation, usage,
+  every option and the `.cand` format. It has no API reference; the public
+  headers document the library, and `docs/reference/library.md` covers
+  linking it.
+- The developer documents in `docs/` (this file, `decisions.md`,
+  `roadmap.md`, `rfi.md`) are excluded from the site in `docs/conf.py`.
+  Site pages link to them by GitHub URL.
+- A new or changed option updates `docs/reference/cli.md` and the user
+  guide page it belongs to. The `api:` CTest case `[cli][docs]` fails when
+  `frost --help` and `docs/reference/cli.md` disagree.
+- The site builds without warnings:
+  `sphinx-build -W -b html docs docs/_build/html` with the packages pinned
+  in `docs/requirements.txt`. Read the Docs builds it, so it costs no CI
+  minutes.
+- The logo, tagline lockup and favicon in `docs/_static/logo/` are generated
+  by `uv run docs/logo-src/make_logo.py` from pinned, hash-checked fonts.
+  Change the script, not the SVGs.
+- `README.md` is a landing page: what frost is, a quickstart, a short
+  install and links into the site. Details belong in the site.
+
 ## Changes
 
 - Work on a branch and open a pull request against `main`.
 - Update [`decisions.md`](decisions.md) when a frozen choice changes and
   [`roadmap.md`](roadmap.md) when planned work or limitations change.
+
+## Versions and releases
+
+- `project(VERSION)` in `CMakeLists.txt` is the only version. The build
+  info, `frost::build_info()`, `frost --version`, the shared library's
+  `VERSION`/`SOVERSION` and `frostConfigVersion.cmake` all follow it.
+- Before 1.0 any minor release may break the API and ABI: the soname is
+  `MAJOR.MINOR` and `find_package(frost X.Y)` accepts only `X.Y.*`. From 1.0
+  both follow the major version.
+- The installed config requires at least the pinned dmt and psrio versions
+  (`FROST_DMT_VERSION`, `FROST_PSRIO_VERSION`).
+- A release bumps `project(VERSION)` (and `version` in `CITATION.cff`) on
+  `main` and moves `CHANGELOG.md`'s Unreleased entries under the new
+  version, then tags that commit `vX.Y.Z` and publishes it as a GitHub
+  release. There are no separate
+  tarballs or binaries (see [`decisions.md`](decisions.md)).

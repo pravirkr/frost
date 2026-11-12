@@ -23,6 +23,17 @@ endif()
 add_library(${FROST_LIBRARY_NAME} ${FROST_LIBRARY_ALL_SOURCES})
 add_library(${PROJECT_NAME}::${FROST_LIBRARY_NAME} ALIAS ${FROST_LIBRARY_NAME})
 frost_enable_warnings_as_errors(${FROST_LIBRARY_NAME})
+# A shared frost's ABI may change with every minor release while on 0.x, so
+# the soname carries MAJOR.MINOR until 1.0 and MAJOR afterwards. This matches
+# the compatibility rule in frostConfigVersion.cmake.
+if(PROJECT_VERSION_MAJOR EQUAL 0)
+  set(FROST_SOVERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}")
+else()
+  set(FROST_SOVERSION "${PROJECT_VERSION_MAJOR}")
+endif()
+set_target_properties(
+  ${FROST_LIBRARY_NAME} PROPERTIES VERSION "${PROJECT_VERSION}" SOVERSION "${FROST_SOVERSION}"
+)
 
 target_compile_features(${FROST_LIBRARY_NAME} PUBLIC cxx_std_20)
 

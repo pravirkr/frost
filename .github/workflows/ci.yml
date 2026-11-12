@@ -46,15 +46,20 @@ jobs:
           sudo apt-get update
           read -ra compiler_packages <<< "$COMPILER_PACKAGES"
           sudo apt-get install -y cmake ninja-build ccache libhdf5-dev libfftw3-dev "${compiler_packages[@]}"
-      - uses: actions/cache@v6
+      # Restore and save separately: actions/cache only saves when the job
+      # succeeds, so a failing test would otherwise leave every later run cold.
+      - name: Restore the CPM source cache
+        id: cpm
+        uses: actions/cache/restore@v6
         with:
           path: .cache/cpm
           key: cpm-${{ runner.os }}-${{ hashFiles('cmake/frostDependencies.cmake', 'cmake/CPM.cmake') }}
           restore-keys: cpm-${{ runner.os }}-
-      - uses: actions/cache@v6
+      - name: Restore the compiler cache
+        uses: actions/cache/restore@v6
         with:
           path: .cache/ccache
-          key: ccache-${{ runner.os }}-${{ matrix.cxx }}-${{ github.sha }}
+          key: ccache-${{ runner.os }}-${{ matrix.cxx }}-${{ github.sha }}-${{ github.run_attempt }}
           restore-keys: ccache-${{ runner.os }}-${{ matrix.cxx }}-
       - name: Configure, build and test
         env:
@@ -66,22 +71,35 @@ jobs:
           ctest --preset ci --parallel 4
           CXX="$CXX" BUILD_DIR=build-ci scripts/check_architecture.sh
           ccache --show-stats
-      - name: Install and check a public consumer
+      - name: Save the CPM source cache
+        if: ${{ !cancelled() && steps.cpm.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v6
+        with:
+          path: .cache/cpm
+          key: ${{ steps.cpm.outputs.cache-primary-key }}
+      - name: Save the compiler cache
+        if: ${{ !cancelled() }}
+        uses: actions/cache/save@v6
+        with:
+          path: .cache/ccache
+          key: ccache-${{ runner.os }}-${{ matrix.cxx }}-${{ github.sha }}-${{ github.run_attempt }}
+      - name: Install the CLI
+        run: |
+          # The default install is the frost CLI alone (plus libpsrdada on Linux).
+          cmake --install build-ci --prefix "$RUNNER_TEMP/frost-cli"
+          find "$RUNNER_TEMP/frost-cli" -type f -o -type l | sort
+          test ! -d "$RUNNER_TEMP/frost-cli/include"
+          env -i "$RUNNER_TEMP/frost-cli/bin/frost" --version
+      - name: Install the library and check a public consumer
         env:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
         run: |
-          # CPM dependencies are EXCLUDE_FROM_ALL; install their public/runtime
-          # packages explicitly before testing a standalone consumer.
-          cmake --build build-ci --target fmt
-          for package in fmt psrio dmt; do
-            cmake --install "build-ci/_deps/${package}-build" --prefix "$RUNNER_TEMP/frost"
-          done
-          # PSRDADA root installs absolute package metadata; only its runtime
-          # and headers are needed by our FindPSRDADA module.
-          cmake --install build-ci/_deps/psrdada-build/src --prefix "$RUNNER_TEMP/frost"
+          # With FROST_INSTALL_LIBRARY one install must give a usable prefix:
+          # frost installs the bundled dmt, psrio, fmt and PSRDADA it needs.
+          # Reconfiguring only changes install rules; nothing needs rebuilding.
+          cmake --preset ci -DFROST_INSTALL_LIBRARY=ON
           cmake --install build-ci --prefix "$RUNNER_TEMP/frost"
-          "$RUNNER_TEMP/frost/bin/frost" --help
           cmake -S tests/consumer -B build-consumer -G Ninja \
             -DCMAKE_CXX_COMPILER="$CXX" -DCMAKE_PREFIX_PATH="$RUNNER_TEMP/frost"
           cmake --build build-consumer --parallel 4
