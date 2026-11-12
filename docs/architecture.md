@@ -247,7 +247,7 @@ cmake --preset cpu && cmake --build --preset cpu && ctest --preset cpu
   `sphinx-build -W -b html docs docs/_build/html` with the packages pinned
   in `docs/requirements.txt`. Read the Docs builds it, so it costs no CI
   minutes.
-- The logo, favicon and README banner in `docs/_static/logo/` are generated
+- The logo, tagline lockup and favicon in `docs/_static/logo/` are generated
   by `uv run docs/logo-src/make_logo.py` from pinned, hash-checked fonts.
   Change the script, not the SVGs.
 - `README.md` is a landing page: what frost is, a quickstart, a short

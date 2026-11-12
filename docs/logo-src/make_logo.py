@@ -5,12 +5,11 @@
 """Generate the frost logo.
 
 The mark is a six-armed snowflake whose arms are FDMT merge trees: each arm
-is a trunk with pairs of branches merging into it, the way the transform
-merges sub-band partial sums. The lockup sets "frost" in Sora SemiBold beside
-it. The README banner, in light and dark versions, shows a dispersed sweep
-frozen into a straight pulse.
-Text is converted to outlines, so the SVGs render the same without the fonts
-installed.
+is a trunk with pairs of branches merging into it, separated from the central
+node by a crisp negative-space collar. The lockup sets "frost" in Sora
+SemiBold beside the mark, optionally above the tracked uppercase tagline
+"RADIO TRANSIENT SEARCH" in IBM Plex Sans. Text is converted to outlines, so
+the SVGs render identically without the fonts installed.
 
 Usage::
 
@@ -45,14 +44,18 @@ CACHE = HERE / ".cache"
 # Fonts, all SIL Open Font License 1.1. Pinned by version and hash.
 FONTS = {
     "sora": (
-        "https://cdn.jsdelivr.net/npm/@fontsource/sora@5.2.8"
-        "/files/sora-latin-600-normal.woff",
+        (
+            "https://cdn.jsdelivr.net/npm/@fontsource/sora@5.2.8"
+            "/files/sora-latin-600-normal.woff"
+        ),
         "0f54f64e7e937c760a41c40d4a8402eb3f5d93021b603fd1bab937f86dc53c42",
     ),
-    "plex-mono": (
-        "https://cdn.jsdelivr.net/npm/@ibm/plex-mono@1.1.0"
-        "/fonts/complete/woff/IBMPlexMono-Regular.woff",
-        "1d5732f53287cbe58936deabda52a60d810b84ac4a3fbdefa8e7632a2c38c39d",
+    "plex-sans": (
+        (
+            "https://cdn.jsdelivr.net/npm/@ibm/plex-sans@1.1.0"
+            "/fonts/complete/woff/IBMPlexSans-Regular.woff"
+        ),
+        "b731cf56514a4bd711ab2f9acf641f9311707f4386772eb306d25c2b29b73b1a",
     ),
 }
 
@@ -62,40 +65,51 @@ ICE = "#8FD3FF"  # accent: the mark on dark
 GLACIER = "#0B5A8A"  # the mark on light
 FROST = "#EAF6FF"  # pale tint
 WHITE = "#FFFFFF"
-GRID = "#142338"  # waterfall channels in the banner
-MUTED = "#7E8DA6"  # banner labels
+SUB_LIGHT = "#4E637A"  # tagline on light
+SUB_DARK = "#8FA3BC"  # tagline on dark
 
 NAME = "frost"
-EXPANSION = "FDMT-accelerated Optimal Search for Radio Transients"
+TAGLINE = "RADIO TRANSIENT SEARCH"
 
 # Mark geometry: a 120-unit box centred on (60, 60). Each detail level lists
 # one arm (trunk first) as line segments, with its stroke width and the
-# radius of the centre dot (0 for none). The arm is repeated every 60°.
-# Fewer branches and heavier strokes keep the small sizes legible.
+# radius of the centre dot (0 for none). Starting the trunk outside (60, 60)
+# leaves an open negative-space collar around the central node.
+_SIN56 = math.sin(math.radians(56.0))
+_COS56 = math.cos(math.radians(56.0))
+
 DETAIL = {
     "full": (
         [
-            ((60, 60), (60, 12)),
-            ((60, 40), (49, 29)),
-            ((60, 40), (71, 29)),
-            ((60, 25), (53, 18)),
-            ((60, 25), (67, 18)),
+            ((60.0, 48.0), (60.0, 11.5)),
+            ((60.0, 39.2), (60.0 - 14.8 * _SIN56, 39.2 - 14.8 * _COS56)),
+            ((60.0, 39.2), (60.0 + 14.8 * _SIN56, 39.2 - 14.8 * _COS56)),
+            ((60.0, 24.5), (60.0 - 9.6 * _SIN56, 24.5 - 9.6 * _COS56)),
+            ((60.0, 24.5), (60.0 + 9.6 * _SIN56, 24.5 - 9.6 * _COS56)),
         ],
-        6.0,
-        7.0,
+        5.4,
+        5.6,
     ),
     "icon": (
-        [((60, 60), (60, 12)), ((60, 40), (49, 29)), ((60, 40), (71, 29))],
-        7.0,
-        8.0,
+        [
+            ((60.0, 46.5), (60.0, 12.0)),
+            ((60.0, 35.0), (60.0 - 16.5 * _SIN56, 35.0 - 16.5 * _COS56)),
+            ((60.0, 35.0), (60.0 + 16.5 * _SIN56, 35.0 - 16.5 * _COS56)),
+        ],
+        6.6,
+        6.2,
     ),
     "small": (
-        [((60, 60), (60, 14)), ((60, 36), (46, 24)), ((60, 36), (74, 24))],
-        12.0,
+        [
+            ((60.0, 60.0), (60.0, 14.0)),
+            ((60.0, 36.0), (46.0, 24.0)),
+            ((60.0, 36.0), (74.0, 24.0)),
+        ],
+        11.5,
         0.0,
     ),
 }
-MARK_HALF = 54  # half-width of the cropped mark, units from the centre
+MARK_HALF = 51.2  # drawn half-extent of the "full" mark from centre (60 - 11.5 + 2.7)
 
 
 def fmt(x: float) -> str:
@@ -107,7 +121,10 @@ def fmt(x: float) -> str:
 def rotate(p: tuple[float, float], deg: float) -> tuple[float, float]:
     a = math.radians(deg)
     x, y = p[0] - 60, p[1] - 60
-    return (60 + x * math.cos(a) - y * math.sin(a), 60 + x * math.sin(a) + y * math.cos(a))
+    return (
+        60 + x * math.cos(a) - y * math.sin(a),
+        60 + x * math.sin(a) + y * math.cos(a),
+    )
 
 
 def mark_body(stroke: str, dot: str | None, detail: str = "full") -> str:
@@ -151,7 +168,9 @@ class Face:
         self.upm = self.font["head"].unitsPerEm
         self.hmtx = self.font["hmtx"]
 
-    def ink_bounds(self, text: str, size: float, tracking: float = 0.0) -> tuple[float, ...]:
+    def ink_bounds(
+        self, text: str, size: float, tracking: float = 0.0
+    ) -> tuple[float, ...]:
         """Ink box (x0, y0, x1, y1) of ``text`` set at origin, y down."""
         _, bounds = self._set(text, size, 0, 0, tracking)
         return bounds
@@ -163,7 +182,9 @@ class Face:
         d, _ = self._set(text, size, x0, baseline, tracking)
         return d
 
-    def _set(self, text, size, x0, baseline, tracking):
+    def _set(
+        self, text: str, size: float, x0: float, baseline: float, tracking: float
+    ) -> tuple[str, tuple[float, ...]]:
         scale = size / self.upm
         x, parts = x0, []
         bounds = BoundsPen(self.glyphs)
@@ -181,7 +202,12 @@ class Face:
 
 
 # ---------------------------------------------------------------- compositions
-def svg(viewbox, body: str, label: str, size: tuple[float, float] | None = None) -> str:
+def svg(
+    viewbox: tuple[float, ...],
+    body: str,
+    label: str,
+    size: tuple[float, float] | None = None,
+) -> str:
     vb = " ".join(fmt(v) for v in viewbox)
     dims = f'width="{fmt(size[0])}" height="{fmt(size[1])}" ' if size else ""
     return (
@@ -190,13 +216,22 @@ def svg(viewbox, body: str, label: str, size: tuple[float, float] | None = None)
     )
 
 
-def mark_svg(stroke: str, dot: str | None, detail: str = "full") -> str:
-    lo, span = 60 - MARK_HALF, 2 * MARK_HALF
+def mark_svg(
+    stroke: str, dot: str | None, detail: str = "full", pad: float = 2.8
+) -> str:
+    lo = 60 - MARK_HALF - pad
+    span = 2 * (MARK_HALF + pad)
     return svg((lo, lo, span, span), mark_body(stroke, dot, detail), NAME)
 
 
-def placed_mark(x: float, y: float, size: float, stroke: str, dot: str | None,
-                detail: str = "full") -> str:
+def placed_mark(
+    x: float,
+    y: float,
+    size: float,
+    stroke: str,
+    dot: str | None,
+    detail: str = "full",
+) -> str:
     """The 120-unit mark box drawn at (x, y), ``size`` px square."""
     k = size / 120
     return (
@@ -205,24 +240,71 @@ def placed_mark(x: float, y: float, size: float, stroke: str, dot: str | None,
     )
 
 
-def wordmark(sora: Face, size: float, x: float, centre_y: float, fill: str) -> tuple[str, float]:
-    """"frost" with its ink box centred on ``centre_y``; returns body, right edge."""
-    track = -0.03
-    x0, y0, x1, y1 = sora.ink_bounds(NAME, size, track)
-    baseline = centre_y - (y0 + y1) / 2
-    d = sora.outline(NAME, size, x - x0, baseline, track)
-    return f'<path d="{d}" fill="{fill}"/>', x + (x1 - x0)
+def lockup_svg(
+    sora: Face,
+    sans: Face,
+    text: str,
+    stroke: str,
+    dot: str,
+    sub: str,
+    *,
+    tagline: bool = False,
+    background: str | None = None,
+) -> str:
+    """Mark beside the wordmark, optionally with the tracked uppercase tagline."""
+    name_size = 104.0 if tagline else 96.0
+    name_track = -0.025
+    nx0, ny0, nx1, ny1 = sora.ink_bounds(NAME, name_size, name_track)
+    name_w = nx1 - nx0
+    name_h = ny1 - ny0
 
+    if tagline:
+        sub_sz = 14.5
+        sub_track = 0.165
+        sx0, sy0, sx1, sy1 = sans.ink_bounds(TAGLINE, sub_sz, sub_track)
+        sub_sz *= (name_w - 2.0) / (sx1 - sx0)
+        sx0, sy0, sx1, sy1 = sans.ink_bounds(TAGLINE, sub_sz, sub_track)
+        sub_h = sy1 - sy0
+        gap_y = 14.0
+        block_h = name_h + gap_y + sub_h
+        drawn_mark_h = block_h + 4.0
+        gap_x = 24.0
+    else:
+        sx0 = sy0 = sub_sz = sub_track = gap_y = 0.0
+        block_h = name_h
+        drawn_mark_h = name_h * 1.32
+        gap_x = 22.0
 
-def lockup_svg(sora: Face, text: str, stroke: str, dot: str) -> str:
-    """Mark beside the wordmark, as on the design's primary lockups."""
-    mark, gap, size = 112, 24, 96
-    # Crop the mark box to the drawn arms so the lockup has no dead margin.
-    pad = (120 - 2 * MARK_HALF) / 120 * mark
-    body = placed_mark(0, 0, mark, stroke, dot)
-    words, right = wordmark(sora, size, mark - pad + gap, mark / 2, text)
-    body += words
-    return svg((pad - 4, pad - 4, right - pad + 8, mark - 2 * pad + 8), body, NAME)
+    drawn_frac = (2 * MARK_HALF) / 120.0
+    mark_box = drawn_mark_h / drawn_frac
+    mark_pad = (60.0 - MARK_HALF) / 120.0 * mark_box
+
+    pad_x = 36.0 if background else 5.0
+    pad_y = 28.0 if background else 5.0
+    w = 2 * pad_x + drawn_mark_h + gap_x + name_w
+    h = 2 * pad_y + max(drawn_mark_h, block_h)
+    cy = h / 2.0
+
+    parts = []
+    if background:
+        parts.append(f'<rect width="{fmt(w)}" height="{fmt(h)}" fill="{background}"/>')
+    parts.append(
+        placed_mark(pad_x - mark_pad, cy - mark_box / 2.0, mark_box, stroke, dot)
+    )
+
+    tx = pad_x + drawn_mark_h + gap_x
+    top_y = cy - block_h / 2.0
+    parts.append(
+        f'<path d="{sora.outline(NAME, name_size, tx - nx0, top_y - ny0, name_track)}" '
+        f'fill="{text}"/>'
+    )
+    if tagline:
+        parts.append(
+            f'<path d="{sans.outline(TAGLINE, sub_sz, tx - sx0 + 1.0, top_y + name_h + gap_y - sy0, sub_track)}" '
+            f'fill="{sub}"/>'
+        )
+    label = f"{NAME}: Radio Transient Search" if tagline else NAME
+    return svg((0, 0, w, h), "".join(parts), label)
 
 
 def favicon_svg() -> str:
@@ -244,74 +326,16 @@ def tile_svg(bg: str, stroke: str, dot: str, radius: float = 28 / 128) -> str:
     return svg((0, 0, s, s), body, NAME)
 
 
-# Banner colours per GitHub theme. The background stays transparent, so the
-# banner blends into the page; README.md picks one with <picture>.
-BANNER = {
-    "light": {"grid": "#DCE5EE", "sweep": GLACIER, "pulse": GLACIER, "arrow": "#8C9AB0",
-              "mark": GLACIER, "dot": ICE, "name": NIGHT, "sub": GLACIER, "halo": GLACIER},
-    "dark": {"grid": GRID, "sweep": ICE, "pulse": ICE, "arrow": MUTED,
-             "mark": ICE, "dot": WHITE, "name": WHITE, "sub": ICE, "halo": None},
-}
-
-
-def banner_svg(sora: Face, mono: Face, theme: str, background: str | None = None) -> str:
-    """1280x326 README header: the lockup and expansion beside a burst being
-    dedispersed, its sweep across the channels frozen into a straight pulse."""
-    c = BANNER[theme]
-    top, w, h = 30, 1280, 326  # viewBox; the channels span y = 60..326
-    centre = top + h / 2
-    body = []
-    if background:
-        body.append(f'<rect y="{top}" width="{w}" height="{h}" fill="{background}"/>')
-    lines = "".join(f"M640,{y}H1220" for y in range(60, 327, 14))
-    body.append(f'<path d="{lines}" stroke="{c["grid"]}" stroke-width="2"/>')
-    body.append(
-        f'<path d="M680 60C690 200,800 300,1040 326" fill="none" stroke="{c["sweep"]}" '
-        'stroke-opacity="0.5" stroke-width="7" stroke-linecap="round" '
-        'stroke-dasharray="0.1 14"/>'
+def social_svg(lockup_dark: str) -> str:
+    """1280x640 GitHub social preview: tagline lockup centred on polar night."""
+    width = 760.0
+    height = width / aspect(lockup_dark)
+    nested = lockup_dark.replace(
+        "<svg ",
+        f'<svg x="{fmt((1280 - width) / 2)}" y="{fmt((640 - height) / 2)}" '
+        f'width="{fmt(width)}" height="{fmt(height)}" ',
+        1,
     )
-    body.append(
-        f'<path d="M1068,200H1112M1102,192L1112,200L1102,208" fill="none" '
-        f'stroke="{c["arrow"]}" stroke-width="2" stroke-linecap="round"/>'
-    )
-    body.append(
-        f'<path d="M1150,60V326" stroke="{c["pulse"]}" stroke-width="7" '
-        'stroke-linecap="round"/>'
-    )
-    # The small white flake marks the frozen burst. On the light banner a
-    # glacier outline keeps its diagonals visible against the white page.
-    flake = (
-        "M1150 193V181M1150 207V219M1144 196L1134 190M1156 196L1166 190"
-        "M1144 204L1134 210M1156 204L1166 210"
-    )
-    if c["halo"]:
-        body.append(
-            f'<path d="{flake}" fill="none" stroke="{c["halo"]}" '
-            'stroke-width="6" stroke-linecap="round"/>'
-        )
-    body.append(
-        f'<path d="{flake}" fill="none" stroke="{WHITE}" '
-        'stroke-width="3" stroke-linecap="round"/>'
-    )
-
-    # Left column, centred on the channels: lockup row, then the expansion.
-    row, sub, gap = 96, 15, 22
-    sub_h = sub * 1.3
-    y0 = centre - (row + gap + sub_h) / 2
-    body.append(placed_mark(80, y0, row, c["mark"], c["dot"]))
-    words, _ = wordmark(sora, 88, 80 + row + 20, y0 + row / 2, c["name"])
-    body.append(words)
-    y = y0 + row + gap
-    body.append(
-        f'<path d="{mono.outline(EXPANSION, sub, 80, y + sub_h / 2 + 0.36 * sub, 0.02)}" '
-        f'fill="{c["sub"]}"/>'
-    )
-    return svg((0, top, w, h), "".join(body), f"{NAME}: {EXPANSION}")
-
-
-def social_svg(banner: str) -> str:
-    """1280x640 GitHub social preview: the dark banner centred on polar night."""
-    nested = banner.replace("<svg ", '<svg x="0" y="157" width="1280" height="326" ', 1)
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" '
         f'viewBox="0 0 1280 640"><rect width="1280" height="640" fill="{NIGHT}"/>'
@@ -347,16 +371,22 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    sora, mono = Face("sora"), Face("plex-mono")
-    banner = banner_svg(sora, mono, "light")
-    banner_dark = banner_svg(sora, mono, "dark")
+    sora, sans = Face("sora"), Face("plex-sans")
+    tagline_light = lockup_svg(sora, sans, NIGHT, GLACIER, ICE, SUB_LIGHT, tagline=True)
+    tagline_dark = lockup_svg(sora, sans, WHITE, ICE, WHITE, SUB_DARK, tagline=True)
 
     # Files referenced by README.md, docs/conf.py and docs/index.md.
     print("docs/_static/logo:")
-    write(STATIC / "frost-banner.svg", banner)
-    write(STATIC / "frost-banner-dark.svg", banner_dark)
-    write(STATIC / "frost-logo.svg", lockup_svg(sora, NIGHT, GLACIER, ICE))
-    write(STATIC / "frost-logo-dark.svg", lockup_svg(sora, WHITE, ICE, WHITE))
+    write(STATIC / "frost-logo-tagline.svg", tagline_light)
+    write(STATIC / "frost-logo-tagline-dark.svg", tagline_dark)
+    write(
+        STATIC / "frost-logo.svg",
+        lockup_svg(sora, sans, NIGHT, GLACIER, ICE, SUB_LIGHT),
+    )
+    write(
+        STATIC / "frost-logo-dark.svg",
+        lockup_svg(sora, sans, WHITE, ICE, WHITE, SUB_DARK),
+    )
     write(STATIC / "frost-mark.svg", mark_svg(GLACIER, ICE))
     write(STATIC / "frost-mark-dark.svg", mark_svg(ICE, WHITE))
     write(STATIC / "favicon.svg", favicon_svg())
@@ -366,15 +396,45 @@ def main() -> None:
 
     print("docs/logo-src/build:")
     assets = {
-        "frost-banner": (banner, 2560),
-        "frost-banner-dark": (banner_svg(sora, mono, "dark", NIGHT), 2560),
-        "frost-logo": (lockup_svg(sora, NIGHT, GLACIER, ICE), 2400),
-        "frost-logo-dark": (lockup_svg(sora, WHITE, ICE, WHITE), 2400),
+        "frost-logo-tagline": (
+            lockup_svg(
+                sora,
+                sans,
+                NIGHT,
+                GLACIER,
+                ICE,
+                SUB_LIGHT,
+                tagline=True,
+                background=WHITE,
+            ),
+            2400,
+        ),
+        "frost-logo-tagline-dark": (
+            lockup_svg(
+                sora,
+                sans,
+                WHITE,
+                ICE,
+                WHITE,
+                SUB_DARK,
+                tagline=True,
+                background=NIGHT,
+            ),
+            2400,
+        ),
+        "frost-logo": (
+            lockup_svg(sora, sans, NIGHT, GLACIER, ICE, SUB_LIGHT),
+            2400,
+        ),
+        "frost-logo-dark": (
+            lockup_svg(sora, sans, WHITE, ICE, WHITE, SUB_DARK),
+            2400,
+        ),
         "frost-mark": (mark_svg(GLACIER, ICE), 1024),
         "frost-mark-dark": (mark_svg(ICE, WHITE), 1024),
-        # One colour, for print and stickers.
-        "frost-mark-mono": (mark_svg(NIGHT, None), 1024),
-        "frost-mark-mono-dark": (mark_svg(WHITE, None), 1024),
+        # One colour, for print and stickers (collar keeps the centre dot distinct).
+        "frost-mark-mono": (mark_svg(NIGHT, NIGHT), 1024),
+        "frost-mark-mono-dark": (mark_svg(WHITE, WHITE), 1024),
         # App icon / avatar tiles (GitHub organisation, conda-forge).
         "frost-icon-dark": (tile_svg(NIGHT, ICE, WHITE), 1024),
         "frost-icon-ice": (tile_svg(ICE, NIGHT, NIGHT), 1024),
@@ -392,14 +452,18 @@ def main() -> None:
     )
     write(BUILD / "apple-touch-icon.png", png(tile_svg(NIGHT, ICE, WHITE), 180, 180))
     frames = [
-        Image.open(io.BytesIO(png(small, s, s))).convert("RGBA") for s in (64, 48, 32, 16)
+        Image.open(io.BytesIO(png(small, s, s))).convert("RGBA")
+        for s in (64, 48, 32, 16)
     ]
     buf = io.BytesIO()
     frames[0].save(
-        buf, format="ICO", sizes=[(s, s) for s in (16, 32, 48, 64)], append_images=frames[1:]
+        buf,
+        format="ICO",
+        sizes=[(s, s) for s in (16, 32, 48, 64)],
+        append_images=frames[1:],
     )
     write(BUILD / "favicon.ico", buf.getvalue())
-    write(BUILD / "social-preview.png", png(social_svg(banner_dark), 1280, 640))
+    write(BUILD / "social-preview.png", png(social_svg(tagline_dark), 1280, 640))
 
 
 if __name__ == "__main__":

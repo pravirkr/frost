@@ -16,7 +16,11 @@ Please also cite the methods frost relies on:
 
 and, for the RFI strategies you enable:
 
-- **IQRM**: Morello, V. et al. (2022).
-- **Kadane searches**: Men, Y. & Barr, E. (2024), A&A 683, A183.
-- **zdot**: Men, Y. et al. (2019).
-- **Zero-DM filtering**: Eatough, R. P., Keane, E. F. & Lyne, A. G. (2009).
+- **IQRM**: Morello, V., Rajwade, K. M. & Stappers, B. W. (2022),
+  [MNRAS 510, 1393](https://doi.org/10.1093/mnras/stab3493).
+- **Kadane searches**: Men, Y. & Barr, E. (2024),
+  [A&A 683, A183](https://doi.org/10.1051/0004-6361/202348247).
+- **zdot**: Men, Y. et al. (2019),
+  [MNRAS 488, 3957](https://doi.org/10.1093/mnras/stz1931).
+- **Zero-DM filtering**: Eatough, R. P., Keane, E. F. & Lyne, A. G. (2009),
+  [MNRAS 395, 410](https://doi.org/10.1111/j.1365-2966.2009.14524.x).
