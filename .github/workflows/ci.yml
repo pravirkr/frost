@@ -46,15 +46,20 @@ jobs:
           sudo apt-get update
           read -ra compiler_packages <<< "$COMPILER_PACKAGES"
           sudo apt-get install -y cmake ninja-build ccache libhdf5-dev libfftw3-dev "${compiler_packages[@]}"
-      - uses: actions/cache@v6
+      # Restore and save separately: actions/cache only saves when the job
+      # succeeds, so a failing test would otherwise leave every later run cold.
+      - name: Restore the CPM source cache
+        id: cpm
+        uses: actions/cache/restore@v6
         with:
           path: .cache/cpm
           key: cpm-${{ runner.os }}-${{ hashFiles('cmake/frostDependencies.cmake', 'cmake/CPM.cmake') }}
           restore-keys: cpm-${{ runner.os }}-
-      - uses: actions/cache@v6
+      - name: Restore the compiler cache
+        uses: actions/cache/restore@v6
         with:
           path: .cache/ccache
-          key: ccache-${{ runner.os }}-${{ matrix.cxx }}-${{ github.sha }}
+          key: ccache-${{ runner.os }}-${{ matrix.cxx }}-${{ github.sha }}-${{ github.run_attempt }}
           restore-keys: ccache-${{ runner.os }}-${{ matrix.cxx }}-
       - name: Configure, build and test
         env:
@@ -66,6 +71,18 @@ jobs:
           ctest --preset ci --parallel 4
           CXX="$CXX" BUILD_DIR=build-ci scripts/check_architecture.sh
           ccache --show-stats
+      - name: Save the CPM source cache
+        if: ${{ !cancelled() && steps.cpm.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v6
+        with:
+          path: .cache/cpm
+          key: ${{ steps.cpm.outputs.cache-primary-key }}
+      - name: Save the compiler cache
+        if: ${{ !cancelled() }}
+        uses: actions/cache/save@v6
+        with:
+          path: .cache/ccache
+          key: ccache-${{ runner.os }}-${{ matrix.cxx }}-${{ github.sha }}-${{ github.run_attempt }}
       - name: Install the CLI
         run: |
           # The default install is the frost CLI alone (plus libpsrdada on Linux).

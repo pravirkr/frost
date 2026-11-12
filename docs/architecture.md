@@ -223,6 +223,13 @@ cmake --preset cpu && cmake --build --preset cpu && ctest --preset cpu
 - Tests assert intended behaviour with independent oracles, not whatever
   the implementation produces. When a synthetic fixture does not trigger
   the expected behaviour, suspect the fixture first.
+- CTest runs tests in parallel with `OMP_NUM_THREADS=1`, so they never
+  oversubscribe the cores; a test of threaded behaviour sets its own count.
+- The `[calibration]` studies run a few seeds by default, enough for every
+  assertion on the full pipeline. Run them at scale with
+  `FROST_CALIBRATION_RECOVERY_SEEDS`, `FROST_CALIBRATION_STRESS_SEEDS` or
+  `FROST_CALIBRATION_POLICY_SEEDS`, and set `FROST_CALIBRATION_OUTPUT` to a
+  directory to write their CSV tables.
 - Data-dependent tests (`[data]`) read local recordings from
   `tests/cpp/data/` (gitignored) and skip when they are absent.
 - Format changed files only: `pre-commit run clang-format --files <files>`

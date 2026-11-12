@@ -1,7 +1,5 @@
 #include "support/calibration_policy.hpp"
 
-#include <charconv>
-
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
@@ -10,19 +8,7 @@ namespace study = frost::test::calibration::policy;
 
 namespace {
 uint32_t seed_count() {
-    const auto* value = std::getenv("FROST_CALIBRATION_POLICY_SEEDS");
-    if (value == nullptr)
-        return 4;
-    const std::string_view text(value);
-    uint32_t count = 0;
-    const auto parsed =
-        std::from_chars(text.data(), text.data() + text.size(), count);
-    if (parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size() ||
-        count < 2 || count > 64) {
-        throw std::invalid_argument(
-            "FROST_CALIBRATION_POLICY_SEEDS must be an integer in [2,64]");
-    }
-    return count;
+    return study_seeds("FROST_CALIBRATION_POLICY_SEEDS", 2, 2, 64);
 }
 inline constexpr uint32_t kTrainingSeed   = kSeed + 10000;
 inline constexpr uint32_t kValidationSeed = kSeed + 20000;

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <charconv>
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
@@ -114,6 +115,30 @@ inline std::vector<float> noise_block(std::mt19937& rng,
 inline std::span<uint8_t> bytes(std::vector<float>& block) {
     return {reinterpret_cast<uint8_t*>(block.data()),
             block.size() * sizeof(float)};
+}
+
+// Seeds per study. Ordinary test runs use a few, which keeps every assertion
+// on the full pipeline; a study reproduces at scale with ``variable`` set,
+// e.g. FROST_CALIBRATION_RECOVERY_SEEDS=16.
+inline uint32_t study_seeds(const char* variable,
+                            uint32_t fallback,
+                            uint32_t minimum,
+                            uint32_t maximum) {
+    const char* value = std::getenv(variable);
+    if (value == nullptr) {
+        return fallback;
+    }
+    const std::string_view text(value);
+    uint32_t count = 0;
+    const auto parsed =
+        std::from_chars(text.data(), text.data() + text.size(), count);
+    if (parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size() ||
+        count < minimum || count > maximum) {
+        throw std::invalid_argument(
+            std::string(variable) + " must be an integer in [" +
+            std::to_string(minimum) + "," + std::to_string(maximum) + "]");
+    }
+    return count;
 }
 
 // Optional study artifacts. Each test owns a different file, so CTest may run

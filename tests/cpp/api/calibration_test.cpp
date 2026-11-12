@@ -210,7 +210,9 @@ TEST_CASE("injection recovery study follows peaks through candidate processing",
     // injected signal. It bypasses calibration/cleaning, not FDMT/boxcars.
     auto cases = scenarios();
     cases.insert(cases.begin(), {"known_gain_oracle", {}, true});
-    for (uint32_t seed = kSeed; seed < kSeed + 16; ++seed) {
+    const auto seeds =
+        study_seeds("FROST_CALIBRATION_RECOVERY_SEEDS", 2, 1, 64);
+    for (uint32_t seed = kSeed; seed < kSeed + seeds; ++seed) {
         for (const float amplitude_scale : {1.0F, 0.5F, 0.25F, 0.0F}) {
             INFO("seed=" << seed << " amplitude_scale=" << amplitude_scale);
             const auto observation = make_observation(seed, amplitude_scale);

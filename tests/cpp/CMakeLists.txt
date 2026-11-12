@@ -85,6 +85,9 @@ function(frost_add_test_suite target suite)
                       FROST_CLI_REFERENCE="${PROJECT_SOURCE_DIR}/docs/reference/cli.md"
   )
   frost_enable_coverage(${target})
+  # One OpenMP thread per test: CTest runs tests in parallel, and more
+  # threads per test oversubscribe the cores. Tests that exercise threading
+  # set their own count.
   catch_discover_tests(
     ${target}
     TEST_SPEC
@@ -95,7 +98,7 @@ function(frost_add_test_suite target suite)
     LABELS
     "cpu"
     ENVIRONMENT
-    "OMP_NUM_THREADS=4"
+    "OMP_NUM_THREADS=1"
   )
   if(FROST_GPU_BACKEND)
     string(TOLOWER ${FROST_GPU_BACKEND} gpu_name)
@@ -109,7 +112,7 @@ function(frost_add_test_suite target suite)
       LABELS
       "gpu"
       ENVIRONMENT
-      "OMP_NUM_THREADS=4"
+      "OMP_NUM_THREADS=1"
     )
   endif()
 endfunction()
