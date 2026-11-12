@@ -132,11 +132,11 @@ endif()
 # 3. Header-only CPM dependencies (build-time only)
 # -----------------------------------------------------------------------
 
-# psrio 0.4.0 shares fmt and the GCC 11 baseline with dmt.
-set(FROST_PSRIO_REVISION 402f24f0e787431befe5b632914338bb6533829f) # v0.4.0
+# psrio 0.5.0 shares fmt and the GCC 11 baseline with dmt.
+set(FROST_PSRIO_REVISION b2d0da516580614bf8341924e51d153f48c4d9bb) # v0.5.0
 CPMAddPackage(
   NAME psrio
-  VERSION 0.4.0
+  VERSION 0.5.0
   GIT_REPOSITORY https://github.com/pravirkr/psrio.git
   GIT_TAG ${FROST_PSRIO_REVISION}
   OPTIONS "PSRIO_BUILD_TESTS OFF" "PSRIO_WITH_HDF5 OFF" "PSRIO_WITH_PSRDADA OFF" "PSRIO_INSTALL ON"
